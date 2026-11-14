@@ -1,23 +1,23 @@
 # Look 视觉目录
 
-Look = 主题（theme）+ 版式（layout）+ 动效气质（motion）。主题决定颜色/字体/质感，版式决定信息骨架，motion 决定运镜与闪白的力度。**三者分开**，所以 5 个主题 × 4 个版式能组成很多方向；内置 12 个经过挑选的组合，既不把审美定死，也不让 AI 每次从零发明。
+Look = 主题（theme）+ 版式（layout）+ 动效气质（motion）+ 视觉引擎（engine）。主题决定颜色/字体/质感，版式决定信息骨架，motion 决定运镜与闪白的力度，engine 决定背景层那口气氛。**四者分开**，所以 5 个主题 × 4 个版式能组成很多方向；内置 12 个经过挑选的组合，既不把审美定死，也不让 AI 每次从零发明。
 
 ## 12 个 curated look
 
-| id | 名称 | 主题 / 版式 / 动效 | 适合 | 一句话气质 |
+| id | 名称 | 主题 / 版式 / 动效 · 引擎 | 适合 | 一句话气质 |
 |---|---|---|---|---|
-| `ink-editorial` | 铅印 · 编辑 | letterpress / editorial / calm | 品牌片、工作室、文化活动 | 米纸、宋体、朱红与裁切标记；像一本会动的刊物 |
-| `ink-poster` | 铅印 · 海报 | letterpress / poster / snappy | 发布、演出、宣言、动态海报 | 一句话占满画面，信息退到边缘 |
-| `ink-grid` | 铅印 · 年鉴 | letterpress / grid / precise | 报告、白皮书、研究、档案 | 十二栏与索引编号，把判断变成可核对的秩序 |
-| `quiet-editorial` | 暖白 · 日常 | quiet / editorial / calm | 咖啡、餐饮、生活方式、疗愈 | 暖白、低对比、鼠尾草绿；不喊口号 |
-| `quiet-poster` | 暖白 · 留白 | quiet / poster / calm | 极简品牌、展览、静态海报 | 大留白与居中短句，只保留一个呼吸点 |
-| `quiet-split` | 暖白 · 对照 | quiet / split / calm | 服务、门店、课程、体验介绍 | 像一张摊开的说明书，读完知道下一步 |
-| `swiss-grid` | 瑞士 · 网格 | swiss / grid / precise | 科技、软件、数据、建筑、企业 | 冷白、正红、十二栏；只让结构说话 |
-| `swiss-split` | 瑞士 · 产品 | swiss / split / precise | 产品功能、SaaS、功能介绍 | 左栏讲清楚，右栏给证据；一屏一个卖点 |
-| `cinema-editorial` | 银幕 · 叙事 | cinema / editorial / cinematic | 影像、故事、高端品牌 | 近黑、金字、上下黑边；字幕像旁白 |
-| `cinema-poster` | 银幕 · 预告 | cinema / poster / cinematic | 首映、舞台、悬念预告 | 居中大字与黑场，信息越少期待越重 |
-| `tech-split` | 终端 · 分栏 | tech / split / precise | AI、开发者工具、硬件、安全 | 深蓝黑、青色信号、等宽标签 |
-| `tech-grid` | 终端 · 仪表 | tech / grid / precise | 数据平台、监控、系统说明 | 扫描线、网格、状态；像工作中的仪表盘 |
+| `ink-editorial` | 铅印 · 编辑 | letterpress / editorial / calm · `halftone` | 品牌片、工作室、文化活动 | 米纸、宋体、朱红与裁切标记；像一本会动的刊物 |
+| `ink-poster` | 铅印 · 海报 | letterpress / poster / snappy · `riso` | 发布、演出、宣言、动态海报 | 一句话占满画面，信息退到边缘 |
+| `ink-grid` | 铅印 · 年鉴 | letterpress / grid / precise · `halftone` | 报告、白皮书、研究、档案 | 十二栏与索引编号，把判断变成可核对的秩序 |
+| `quiet-editorial` | 暖白 · 日常 | quiet / editorial / calm · `bokeh` | 咖啡、餐饮、生活方式、疗愈 | 暖白、低对比、鼠尾草绿；不喊口号 |
+| `quiet-poster` | 暖白 · 留白 | quiet / poster / calm · `bokeh` | 极简品牌、展览、静态海报 | 大留白与居中短句，只保留一个呼吸点 |
+| `quiet-split` | 暖白 · 对照 | quiet / split / calm · `bokeh` | 服务、门店、课程、体验介绍 | 像一张摊开的说明书，读完知道下一步 |
+| `swiss-grid` | 瑞士 · 网格 | swiss / grid / precise · `orbit` | 科技、软件、数据、建筑、企业 | 冷白、正红、十二栏；只让结构说话 |
+| `swiss-split` | 瑞士 · 产品 | swiss / split / precise · `orbit` | 产品功能、SaaS、功能介绍 | 左栏讲清楚，右栏给证据；一屏一个卖点 |
+| `cinema-editorial` | 银幕 · 叙事 | cinema / editorial / cinematic · `dust` | 影像、故事、高端品牌 | 近黑、金字、上下黑边；字幕像旁白 |
+| `cinema-poster` | 银幕 · 预告 | cinema / poster / cinematic · `aurora` | 首映、舞台、悬念预告 | 居中大字与黑场，信息越少期待越重 |
+| `tech-split` | 终端 · 分栏 | tech / split / precise · `flow` | AI、开发者工具、硬件、安全 | 深蓝黑、青色信号、等宽标签 |
+| `tech-grid` | 终端 · 仪表 | tech / grid / precise · `scan` | 数据平台、监控、系统说明 | 扫描线、网格、状态；像工作中的仪表盘 |
 
 完整关键词见 `assets/template/js/looks.js` 的 `keywords`；`node tools/pick-look.js --list` 会列出全部。
 
@@ -78,6 +78,29 @@ URL 也支持 `?look=ink-poster&style=letterpress&layout=poster`，便于同一�
 
 motion 只调 `timeline.js` 的连续运镜幅度与切点闪白，不改变场景内部动画。
 
+## 视觉引擎
+
+引擎是 Canvas 2D 画在 `.bg` 里的确定性氛围层：种子 PRNG + 时间函数，同一秒永远同一帧，不参与布局，不依赖 CSS 动画。
+
+| 引擎 | 画面语言 | 默认归属 |
+|---|---|---|
+| `halftone` | 径向网点场 + 套印偏移 | ink-editorial / ink-grid |
+| `riso` | 双色叠印色块 + 印刷噪点 | ink-poster |
+| `bokeh` | 柔光散景 + 呼吸明暗 | quiet-editorial / quiet-poster / quiet-split |
+| `dust` | 尘埃、斜光束、暖角漏光 | cinema-editorial |
+| `aurora` | 极光带 + 竖光帘 | cinema-poster |
+| `flow` | 解析流线场 + 亮节点 | tech-split |
+| `scan` | 扫描带 + 遥测刻度 + 数据点列 | tech-grid |
+| `orbit` | 同心圆弧 + 十字标 + 行进刻度 | swiss-grid / swiss-split |
+
+```bash
+# 临时对比引擎（URL 覆盖，不写回文件）
+open "http://127.0.0.1:5173/?look=ink-editorial&engine=riso"
+open "http://127.0.0.1:5173/?look=tech-grid&engine=none"
+```
+
+规则：一帧只允许一个引擎；深色主题用 `screen` 混合（其余 `multiply`）；引擎强度在 `js/looks.js` 的 `engineOpts` 里按 look 调好，手改幅度 ≤ ±0.03；改完跑 `npm run qa:engines` 并抽帧对比。完整目录、签名动作与反套路见 `design-dna.md`。
+
 ## 竖屏 9:16
 
 ```bash
@@ -105,22 +128,25 @@ npm run check
 
 ## 样片墙
 
-随包有一张四宫格总览（ink-poster / swiss-grid / cinema-poster / quiet-split）：`assets/looks-contact-sheet.jpg`。完整的 12 look 静帧用工具生成：
+随包有一张 12 look 一页总览，每个格子里标了主题 / 版式 / 引擎：`assets/looks-contact-sheet.jpg`。重新生成或给客户做提案：
 
 ```bash
-npm run look:gallery                          # 12 个 look × 3 帧
+npm run look:gallery                          # 12 个 look × 3 帧 → qa/looks/gallery.html
 node tools/look-gallery.js . --looks ink-poster,tech-split
 node tools/look-gallery.js . --at 6,26,47
 open qa/looks/gallery.html
+
+node tools/contact-sheet.js . --at 29.2 --out qa/contact-sheet.jpg   # 一页总览 JPEG
 ```
 
-用于交付前目检所有审美方向，或给客户做风格提案。
+用于交付前目检所有审美方向，或给客户做风格提案。看的时候除了版式，也要看引擎：背景是否与主题同温、有没有压过标题、12 个方向是否真的长得不一样。
 
 ## 增加第 13 个 look
 
 1. 在 `js/looks.js` 的 `LOOKS` 里加一条：`{ id, name, en, theme, layout, motion, bestFor, desc, keywords }`。
-2. `node tools/check-project.js .` 会校验 id、主题文件、版式选择器与 keywords。
-3. 跑 `node tools/look-gallery.js . --looks <新 id>` 目检。
-4. 不需要改场景；只有当新 look 需要全新骨架时，才在 `styles/layouts.css` 增加 `html[data-layout="..."]`。
+2. 在 `ENGINES` 里给它绑定引擎（不绑则 `engine: 'none'`）；新引擎要先在 `js/engines.js` 注册。
+3. `node tools/check-project.js .` 会校验 id、主题文件、版式选择器与 keywords；`npm test` 会校验引擎 id 合法、alpha 范围。
+4. 跑 `node tools/look-gallery.js . --looks <新 id>` 和 `npm run qa:engines -- --looks <新 id>` 目检。
+5. 不需要改场景；只有当新 look 需要全新骨架时，才在 `styles/layouts.css` 增加 `html[data-layout="..."]`。
 
 审美方向是开放的：12 个是起点，不是白名单。

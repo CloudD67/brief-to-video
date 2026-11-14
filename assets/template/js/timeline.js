@@ -148,6 +148,7 @@
 
     seekSubs(t);
     seekChrome(t);
+    if (window.engineSeek) window.engineSeek(t);
 
     let flashP = 0;
     for (let i = 1; i < scenes.length; i++) {
@@ -242,6 +243,7 @@
       layout: window.FILM_LAYOUT || (C.layout || 'editorial'),
       look: window.FILM_LOOK || (C.look || 'auto'),
       motion: MOTION.id || 'calm',
+      engine: window.FILM_ENGINE || 'none',
       scenes: scenes.map(function (s) {
         return { id: s.id, start: s.aStart, end: s.aEnd, authoredStart: s.start, authoredEnd: s.end };
       }),

@@ -157,6 +157,28 @@
     }
   ];
 
+  /* 视觉引擎：在主题/版式/动效之外加一层会呼吸的画面。
+     全部确定性绘制（种子 PRNG + 时间），不依赖 CSS 动画，可逐帧定位。 */
+  const ENGINES = {
+    'ink-editorial': { engine: 'halftone', engineOpts: { alpha: 0.13, spacing: 18 } },
+    'ink-poster': { engine: 'riso', engineOpts: { alpha: 0.17 } },
+    'ink-grid': { engine: 'halftone', engineOpts: { alpha: 0.11, spacing: 13 } },
+    'quiet-editorial': { engine: 'bokeh', engineOpts: { alpha: 0.09 } },
+    'quiet-poster': { engine: 'bokeh', engineOpts: { alpha: 0.12 } },
+    'quiet-split': { engine: 'bokeh', engineOpts: { alpha: 0.06 } },
+    'swiss-grid': { engine: 'orbit', engineOpts: { alpha: 0.13 } },
+    'swiss-split': { engine: 'orbit', engineOpts: { alpha: 0.09 } },
+    'cinema-editorial': { engine: 'dust', engineOpts: { alpha: 0.85 } },
+    'cinema-poster': { engine: 'aurora', engineOpts: { alpha: 0.9 } },
+    'tech-split': { engine: 'flow', engineOpts: { alpha: 0.9 } },
+    'tech-grid': { engine: 'scan', engineOpts: { alpha: 0.9 } }
+  };
+  LOOKS.forEach(function (l) {
+    const fx = ENGINES[l.id] || { engine: 'none' };
+    l.engine = fx.engine;
+    l.engineOpts = fx.engineOpts || {};
+  });
+
   const DEFAULT_ID = 'ink-editorial';
 
   function normalize(text) {
@@ -227,7 +249,7 @@
     return LOOKS.map(function (l) {
       return {
         id: l.id, name: l.name, en: l.en, theme: l.theme, layout: l.layout,
-        motion: l.motion, bestFor: l.bestFor, desc: l.desc, keywords: l.keywords
+        motion: l.motion, engine: l.engine, bestFor: l.bestFor, desc: l.desc, keywords: l.keywords
       };
     });
   }

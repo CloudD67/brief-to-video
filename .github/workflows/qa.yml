@@ -1,0 +1,68 @@
+name: QA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  template:
+    name: 模板工程体检
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: assets/template
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 安装中文字体
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk
+
+      - name: 安装 Chrome
+        id: chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: 安装依赖
+        run: npm install --no-audit --no-fund
+
+      - name: 单元测试
+        run: npm test
+
+      - name: 静态检查
+        run: npm run check
+
+      - name: 引擎体检
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: node tools/qa-engines.js .
+
+      - name: 版式体检
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: node tools/qa-layout.js . --scale 0.5
+
+      - name: 节奏探针
+        env:
+          CHROME_PATH: ${{ steps.chrome.outputs.chrome-path }}
+        run: node tools/qa-timing.js . --scale 0.5
+
+      - name: 保存报告
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-reports
+          path: assets/template/qa/
+          if-no-files-found: ignore
+          retention-days: 14

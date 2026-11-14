@@ -12,6 +12,8 @@ brief
   → timeline.js（按 duration/60 等比缩放 + 运镜/切点 + 字幕 cue 解析 + 素材序列）
   → styles/tokens.css + styles/themes/*.css（5 套语义令牌）
   → styles/layouts.css + styles/portrait.css（4 版式 / 9:16 重排）
+  → js/engines.js（确定性 Canvas 氛围层：8 个引擎，种子 + 时间函数）
+  → styles/engines.css（引擎层混合与素材调色）
   → js/media.js（场景素材清单、预载、Ken Burns 进度）
   → server.js（本地静态服务，仅 render/preview 时启动）
   → Chrome + Puppeteer（window.pauseAt(t) 逐帧截图）
@@ -20,9 +22,12 @@ brief
   → voiceover.js（macOS say 按字幕时间轴合成 assets/voiceover.wav）
   → encode.js（FFmpeg：H.264 + AAC + 侧链闪避 + 响度报告）
   → out/final.mp4 + out/poster.png
+  → tools/qa-*.js（静态 / 版式 / 节奏 / 引擎 / SSIM 回归 / 抽帧）
 ```
 
 全部离线：不下载素材、不调用云服务；可选的外部输入只有本地品牌字体、用户素材和 macOS 系统语音。
+
+当前为 2.0.0：12 个 look、8 个确定性视觉引擎、SSIM 视觉回归与 GitHub Actions CI。第三方设计方法的来源与许可见根目录 `ATTRIBUTIONS.md`；设计 DNA 的可实现版本见 `references/design-dna.md`。
 
 ## 2. 环境要求
 
@@ -66,6 +71,7 @@ my-film/
 │   ├── easing.js           E：缓动函数
 │   ├── fonts.js            可选品牌字体加载
 │   ├── scene-kit.js        kit：页眉/插画/遮罩/规格表/素材缩略图
+│   ├── engines.js          8 个 Canvas 视觉引擎（种子 PRNG + 时间函数）
 │   ├── subtitle.js         烧录字幕轨（tcFps 可配）
 │   ├── timeline.js         场景调度、cue 解析、播放、seek、素材序列
 │   ├── media.js            素材清单合并/预载、场景级轮换
@@ -78,27 +84,33 @@ my-film/
 │   ├── components.css      页眉/标题/卡片/面板/素材框
 │   ├── layouts.css         4 个版式骨架（editorial/poster/grid/split）
 │   ├── portrait.css        9:16 重排
+│   ├── engines.css         引擎层混合与素材调色
 │   └── scenes.css          各场景专用布局
 ├── tools/
 │   ├── doctor.js           环境体检（Node/依赖/Chrome/ffmpeg/磁盘/主题）
 │   ├── check-project.js    静态检查（look/版式/主题契约/对比度/剧本/素材）
 │   ├── pick-look.js        按 brief 推荐 look（--list/--json）
 │   ├── look-gallery.js     12 个 look × N 帧样片墙
+│   ├── contact-sheet.js    带标签的 12-look 总览图
 │   ├── voiceover.js        macOS say → 按字幕时间轴合成旁白 WAV
 │   ├── prep-media.js       图片/视频 → 场景素材清单（视频自动抽帧）
-│   ├── qa-all.js           一条命令跑完 check → layout → timing → stills
+│   ├── qa-all.js           一条命令跑完 check → layout → timing → engines → stills
 │   ├── qa-layout.js        版式体检（出框/裁切/字幕碰撞）
 │   ├── qa-timing.js        节奏探针（占位符/残影/字幕/空帧）
+│   ├── qa-engines.js       引擎体检（绑定/层序/复现/有变化/无报错）
+│   ├── qa-regress.js       SSIM 视觉回归（对比 qa/baseline/）
 │   ├── qa-stills.js        切点/中点/收尾/封面抽帧
 │   ├── style-gallery.js    按主题批量出静帧
 │   └── grab.js             从成片回抽帧
+├── test/unit.test.js       Node 单元测试（look/config/剧本/CLI）
+├── .github/workflows/qa.yml CI：test + check + 引擎/版式/节奏
 ├── assets/music.wav        合成配乐（生成物）
 ├── assets/voiceover.wav    旁白（生成物）
 ├── assets/media/           用户素材（可选）
 ├── frames/                 渲染帧（生成物）
 ├── out/                    final.mp4 / video.mp4 / poster.png
 ├── stills/                 手动抽帧（生成物）
-└── qa/                     QA 抽帧、layout.json、timing.json、looks/（生成物）
+└── qa/                     QA 抽帧、layout/timing/engines.json、baseline/（生成物）
 ```
 
 ## 4. 配置源
@@ -163,7 +175,7 @@ node "$HOME/.qoder/skills/brief-to-video/scripts/new-film.js" ./launch \
 | `--no-install` | 安装 | 跳过 npm install |
 | `--force` | 否 | 允许写入非空目录（谨慎） |
 
-创建时整目录复制模板，`tools/` 里自带 `doctor.js`、`qa-all.js`、`check-project.js`、`qa-stills.js`、`qa-layout.js`、`qa-timing.js`、`grab.js`、`style-gallery.js`、`pick-look.js`、`look-gallery.js`、`voiceover.js`、`prep-media.js`。建完会打印选中的 look 及主题/版式/动效。
+创建时整目录复制模板，`tools/` 里自带 `doctor.js`、`qa-all.js`、`check-project.js`、`qa-stills.js`、`qa-layout.js`、`qa-timing.js`、`qa-engines.js`、`qa-regress.js`、`contact-sheet.js`、`grab.js`、`style-gallery.js`、`pick-look.js`、`look-gallery.js`、`voiceover.js`、`prep-media.js`，以及 `test/unit.test.js`。建完会打印选中的 look 及主题/版式/动效/引擎。
 
 ### 5.2 渲染 `render.js`
 
@@ -310,10 +322,13 @@ node tools/prep-media.js . --fps 2 --max-frames 6 --width 1600
 
 ```bash
 npm run doctor         # = node tools/doctor.js .（环境体检，渲染前先跑）
+npm test               # = node --test test/unit.test.js（look/config/剧本/CLI）
 npm run check          # = node tools/check-project.js .
-npm run qa             # = node tools/qa-all.js . → check → layout → timing → stills
+npm run qa             # = node tools/qa-all.js . → check → layout → timing → engines → stills
 npm run qa:layout      # = node tools/qa-layout.js . → qa/layout.json
 npm run qa:timing      # = node tools/qa-timing.js . → qa/timing.json
+npm run qa:engines     # = node tools/qa-engines.js . → qa/engines.json
+npm run qa:regress     # = node tools/qa-regress.js . → SSIM 对比 qa/baseline/
 npm run qa:stills      # = node tools/qa-stills.js . → qa/stills/
 npm run styles         # = node tools/style-gallery.js .
 npm run look "数据平台发布，仪表盘"   # = node tools/pick-look.js
@@ -323,6 +338,9 @@ npm run media          # = node tools/prep-media.js .
 npm run voice          # = node tools/voiceover.js .
 node tools/qa-all.js . --look swiss-grid               # 指定 look 跑全套
 node tools/qa-all.js . --style cinema --layout poster  # 组合覆盖
+node tools/qa-engines.js . --looks ink-poster,tech-split
+node tools/qa-regress.js . --update                    # 重建基线（改版后有意为之）
+node tools/contact-sheet.js . --at 29.2 --out qa/contact-sheet.jpg
 node tools/look-gallery.js . --looks ink-poster,tech-split --at 6,26,47
 node tools/style-gallery.js . --themes quiet
 node tools/grab.js out/final.mp4 3.0 15.0 27.0
@@ -330,7 +348,13 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0
 
 `doctor.js` 检查 Node ≥ 18、`node_modules`/`puppeteer-core`、Chrome 可执行、ffmpeg（installer → ffmpeg-static → PATH）、工程写入权限、磁盘空间、主题是否齐全、配乐是否存在、以及 `looks.js` / `media.js` / `voiceover.js` / `prep-media.js` 是否齐备。4K 按 8.5MB/帧估算（实测 PNG 约 8MB/帧），可用空间 < 预估 60% 直接失败，< 130% 警告。`--style` 可指定要检查的主题，`--json` 输出报告。
 
-`qa-all.js` 是内容体检的总入口：先跑静态检查（失败即停），再依次跑版式、节奏、抽帧，汇总写入 `qa/summary.json`。`--look` / `--style` / `--layout` 透传给三步浏览器体检；`--skip-stills` 跳过抽帧；`--scale` 透传。单步失败不影响后续步骤，最后统一汇总报错。
+`qa-all.js` 是内容体检的总入口：先跑静态检查（失败即停），再依次跑版式、节奏、引擎、抽帧，汇总写入 `qa/summary.json`。`--look` / `--style` / `--layout` 透传给四步浏览器体检；`--skip-stills` 跳过抽帧；`--scale` 透传。单步失败不影响后续步骤，最后统一汇总报错。
+
+`qa-engines.js` 逐个 look 检查引擎层：`looks.js` 有绑定、页面只挂一层引擎、位于 `.bg` 内且透明度合理、当前时刻确实画出了像素、同一时刻两次渲染一致、不同时刻有变化、页面无报错。`--looks` 只测指定 look，`--json` 写报告；默认写 `qa/engines.json`。它验证的是「引擎在不在、动不动、稳不稳」，审美仍靠抽帧目检。
+
+`qa-regress.js` 用 FFmpeg SSIM 对比 12 个 look × 2 个时刻（2.4s / 7.6s）与 `qa/baseline/` 基线，低于 0.985 判为回归，diff 图写 `qa/regress-diff/`。首次或有意改版后跑 `--update` 重建基线；基线只存在本地，不入库。静态检查、引擎体检、回归三件套一起，才能在改主题/引擎/版式后知道有没有弄坏别处。
+
+`contact-sheet.js` 对 12 个 look 各出一帧（默认 `0.48 × duration`），拼成带 look id、主题/版式/引擎标签的总览图，默认写 `qa/contact-sheet.jpg`；`--at` / `--cols` / `--tile` / `--out` 可调。用于交付前目检全部方向，或给客户做风格提案。
 
 `pick-look.js` 用 `brief + title + slogan + brandSub` 计分，输出 look、confidence、命中关键词与 3 个备选；`--theme` 约束主题，`--layout` 约束版式，`--json` 给程序读，`--list` 列全部 12 个 look。
 
@@ -376,7 +400,9 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0
 | QA 抽帧 ~33 张 | 33 | ~5s | ~3MB |
 | 版式体检 qa:layout | 43 个采样时刻 | ~4–10s | JSON 报告 |
 | 节奏探针 qa:timing | 43 个采样时刻 | ~4–10s | JSON 报告 |
-| 一条命令 qa（全部） | — | ~20–40s | JSON + 抽帧 |
+| 引擎体检 qa:engines | 12 look × 2 时刻 | ~6s | JSON 报告 |
+| SSIM 回归（12 look × 2 帧） | 24 帧 | ~45s | diff 图 + JSON |
+| 一条命令 qa（全部） | — | ~25–45s | JSON + 抽帧 |
 | 风格 gallery（5 主题 × 3 帧） | 15 | ~10s | ~2MB |
 | 1080p 60s | 1800 | ~6–7 分钟 | frames ~3–4GB |
 | 4K 60s | 1800 | ~15–25 分钟 | frames ~14–16GB |
@@ -394,6 +420,10 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0
 | `未知风格` / 主题没生效 | `config.style` 或 `--style` 拼错 | `render.js` 开渲前即失败并列出可用主题；`npm run check` / `doctor` 也会报 |
 | 主题对比度报错 | 新主题的 `--mute`/`--accent` 太浅或 `--ink` 不够深 | 按报错调令牌；正文 ≥10:1、字幕 ≥7:1、弱化字 ≥4.5:1 |
 | 主题改了不生效 | 缺 `html[data-style="<name>"]` 选择器 | 补选择器；`npm run check` 会报 |
+| 引擎看不见/不像预期 | look 未绑定、URL 带了 `?engine=none`，或 alpha 太低 | `npm run qa:engines` 看绑定与覆盖率；强度按抽帧目检 |
+| 引擎压过标题 | alpha 过高，或深色底用了 `multiply` | 回到默认 alpha（±0.03 以内）；深色主题必须 `screen` |
+| 同一时刻两次渲染不一致 | 引擎读了 `Math.random`/`Date.now` | 只用 `rnd(seed)` 与时间 `t`；`qa:engines` 会抓 |
+| 视觉回归突然不过 | 基线过期，或真的改坏了别处 | 先看 `qa/regress-diff/`；确认改动是有意的再 `--update` |
 | 渲染前报磁盘不足 | 4K PNG 帧很占空间（约 8MB/帧） | 清理旧 frames/，或 `--scale 1`，或缩短 `--to` |
 | 某场景空白 | `mount` 抛错被 timeline 吞掉 | `npm run preview` 开控制台；或 `node render.js --at <秒> --headed` 看报错 |
 | 切点第一帧缺页眉 | 入场从 0 开始 | 改为 `U.inv(-0.3, 0.04, t)` |
@@ -440,7 +470,7 @@ Look：cinema-editorial（自动 · high）· cinema / editorial / cinematic
 封面：/abs/path/out/poster.png
 工程：/abs/path/my-film（npm run preview 可预览，S 主题 / L 版式 / K look）
 素材：assets/media/（可选）· 旁白：assets/voiceover.wav（可选）
-QA：check / qa:layout / qa:timing / qa 全通过；grab 回抽帧已核对
+QA：npm test / check / qa（含引擎）/ qa:regress 全通过；grab 回抽帧已核对
 音乐：本地合成；旁白：macOS say；均无外部版权素材
 ```
 
@@ -448,7 +478,9 @@ QA：check / qa:layout / qa:timing / qa 全通过；grab 回抽帧已核对
 
 - 画布支持 16:9（1920×1080）与 9:16（1080×1920）两套坐标系；其他比例不做保证，非标准尺寸 `check` 会告警。
 - 主题/look 只换表现与骨架，不改变场景里的文案结构；需要全新构图时在 `layouts.css` 增版式或新写场景。
-- 画面主体仍是排版 + SVG 插画 + 伪 UI；真实照片/视频通过 `assets/media/` 接入，但不做抠像、跟踪、3D、粒子。
+- 画面主体仍是排版 + SVG 插画 + 伪 UI + Canvas 氛围引擎（网点/双色叠印/散景/尘埃/极光/流线/扫描/轨道）；真实照片/视频通过 `assets/media/` 接入，但不做抠像、跟踪、3D、粒子模拟。
+- 引擎是确定性背景层：同一时刻永远同一帧，但不能替代构图；遮住引擎画面就散，说明版式没做完。
+- 视觉回归基线（`qa/baseline/`）只存在本地；换机器或改版后先目检抽帧，再用 `qa-regress --update` 重建基线。
 - 旁白依赖 macOS `say`；Linux/Windows 需要自己生成 `assets/voiceover.wav` 或用 `--voice` 指向现成音轨。
 - 配乐是程序合成，适合做底；需要真实乐器/歌曲时替换 `assets/music.wav` 即可。
 - 4K 渲染时间较长，务必先 1080p 审片。

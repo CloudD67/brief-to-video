@@ -1,0 +1,66 @@
+/* ============================================================
+   视觉引擎与质感层
+   Canvas 负责会呼吸的底（网点点阵、散景、尘埃、流场…）；
+   CSS 负责每个 look 的颗粒、暗角与素材调色。
+   两者都不改变版式与文字位置。
+   ============================================================ */
+
+.fx-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+html[data-engine="none"] .fx-canvas { display: none; }
+
+/* ---------- 按 look 调质感：只动纹理，不动布局 ---------- */
+
+html[data-look="ink-editorial"] { --grain: 0.072; --vignette: 18%; }
+html[data-look="ink-poster"]    { --grain: 0.088; --vignette: 24%; }
+html[data-look="ink-grid"]      { --grain: 0.058; --vignette: 14%; }
+
+html[data-look="quiet-editorial"] { --grain: 0.042; --vignette: 8%; }
+html[data-look="quiet-poster"]    { --grain: 0.05;  --vignette: 6%; }
+html[data-look="quiet-split"]     { --grain: 0.038; --vignette: 7%; }
+
+html[data-look="swiss-grid"]  { --grain: 0.012; --vignette: 0%; }
+html[data-look="swiss-split"] { --grain: 0.012; --vignette: 0%; }
+
+html[data-look="cinema-editorial"] { --grain: 0.10; --vignette: 40%; }
+html[data-look="cinema-poster"]    { --grain: 0.095; --vignette: 44%; }
+
+html[data-look="tech-split"] { --grain: 0.038; --vignette: 26%; }
+html[data-look="tech-grid"]  { --grain: 0.042; --vignette: 28%; }
+
+/* ---------- 真实素材的胶片/印刷调色 ---------- */
+
+html[data-look^="ink-"] .frame.media img {
+  filter: grayscale(0.9) contrast(1.12) sepia(0.18) brightness(0.98);
+}
+html[data-look^="quiet-"] .frame.media img {
+  filter: saturate(0.85) contrast(0.97) brightness(1.03) sepia(0.04);
+}
+html[data-look^="swiss-"] .frame.media img {
+  filter: saturate(0.92) contrast(1.08) brightness(1.01);
+}
+html[data-look^="cinema-"] .frame.media img {
+  filter: saturate(0.7) contrast(1.12) brightness(0.88) sepia(0.06);
+}
+html[data-look^="tech-"] .frame.media img {
+  filter: saturate(0.45) contrast(1.16) brightness(0.92) hue-rotate(-6deg);
+}
+
+/* 印刷与终端题材：素材上再压一层主题色，和整体墨色咬合 */
+html[data-look^="ink-"] .frame.media::after,
+html[data-look^="tech-"] .frame.media::after {
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+/* 素材在画面里缓慢推近；已有 Ken Burns 用 --scene-p，这里只补一点对比 */
+html[data-look^="cinema-"] .frame.media img,
+html[data-look^="tech-"] .frame.media img {
+  will-change: transform, filter;
+}

@@ -625,7 +625,8 @@ function checkColors() {
     lines.forEach((line, i) => {
       if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
       if (/querySelector|getElementById|closest|matches/.test(line)) return;
-      if (/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(line)) {
+      // Canvas 只能用解析后的颜色：rgba(var(--token), a) 这类由令牌派生的调用不算写死
+      if (/#[0-9a-fA-F]{3,8}\b|\brgba?\(\s*['"]?[0-9]/.test(line)) {
         warn('JS 里出现颜色字面量 ' + path.relative(root, f) + ':' + (i + 1) + '（推荐 var(--token)）');
         hits++;
       }

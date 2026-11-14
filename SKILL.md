@@ -1,6 +1,6 @@
 ---
 name: brief-to-video
-description: 把一句话的视频需求做成可交付成片：宣传片、产品片、品牌短片、功能讲解、开场/结尾、动态海报或社媒短视频，支持 16:9 横屏与 9:16 竖屏。内置 12 个 curated look（5 主题 × 4 版式 × 4 动效气质），按 brief 自动选择，也可手动指定；可选真实图片/视频抽帧与 macOS 中文旁白（含配乐侧链闪避）。当用户说“帮我做个视频 / 宣传片 / 企业宣传 / 品牌片 / 短片 / 动效 / 动态海报 / 产品片 / 功能讲解 / 发布会开场 / 活动预告 / 竖屏短视频 / 口播视频 / 把这段文案做成视频 / 剪个片”，或只给一句主题并期待一个 MP4 时使用。流程为 HTML/CSS/JS 时间轴 → Puppeteer 逐帧渲染 → FFmpeg 编码 4K/1080p → 自动版式/节奏体检 + 抽帧目检。
+description: 把一句话的视频需求做成可交付成片：宣传片、产品片、品牌短片、功能讲解、开场/结尾、动态海报或社媒短视频，支持 16:9 横屏与 9:16 竖屏。内置 12 个 curated look（5 主题 × 4 版式 × 4 动效气质）与 8 个确定性视觉引擎（网点/双色叠印/散景/尘埃/极光/流线/扫描/轨道），按 brief 自动选择，也可手动指定；可选真实图片/视频抽帧与 macOS 中文旁白（含配乐侧链闪避）。当用户说“帮我做个视频 / 宣传片 / 企业宣传 / 品牌片 / 短片 / 动效 / 动态海报 / 产品片 / 功能讲解 / 发布会开场 / 活动预告 / 竖屏短视频 / 口播视频 / 把这段文案做成视频 / 剪个片”，或只给一句主题并期待一个 MP4 时使用。流程为 HTML/CSS/JS 时间轴 → Puppeteer 逐帧渲染 → FFmpeg 编码 4K/1080p → 单测/引擎/版式/节奏体检 + SSIM 回归 + 抽帧目检。
 ---
 
 # Brief to Video
@@ -14,7 +14,7 @@ description: 把一句话的视频需求做成可交付成片：宣传片、产�
 - 一套切点/收尾 QA 抽帧 `qa/stills/*.jpg`（`npm run qa` 一条命令产出并汇总）
 - 一个可继续改文案、换 look、改镜头的工程目录
 
-审美不是单一风格：5 个主题（`letterpress` / `swiss` / `cinema` / `quiet` / `tech`）× 4 个版式（`editorial` / `poster` / `grid` / `split`）× 4 个 motion，内置 12 个 curated look。**AI 默认按 brief 自动选择**，日志会说明命中了哪些词、置信度和备选；想换方向时可用 `--look`、`?look=` 或预览键 `K` 覆盖。默认画面由 HTML/CSS/SVG 绘制，可复现、无版权风险；用户提供素材时才接入图片/视频，并继承主题的纸张质感与版式。
+审美不是单一风格：5 个主题（`letterpress` / `swiss` / `cinema` / `quiet` / `tech`）× 4 个版式（`editorial` / `poster` / `grid` / `split`）× 4 个 motion，内置 12 个 curated look。**每个 look 再绑定一个确定性视觉引擎**（`halftone` / `riso` / `bokeh` / `dust` / `aurora` / `flow` / `scan` / `orbit`），在背景层画出与主题同温的纸感、光感或数据感，逐帧可复现。**AI 默认按 brief 自动选择**，日志会说明命中了哪些词、置信度和备选；想换方向时可用 `--look`、`?look=` 或预览键 `K` 覆盖。默认画面由 HTML/CSS/SVG + Canvas 绘制，可复现、无版权风险；用户提供素材时才接入图片/视频，并继承主题的纸张质感与版式。
 
 全片可见文案集中在 `js/script.js`（字幕 + 各场景文字），场景文件只负责画。场景与字幕按 60s 基准编写，改 `config.duration` 后**运行时自动等比缩放**，不需要手改时间码。旁白可选：`npm run voice` 用 macOS `say` 按字幕时间轴生成，`encode.js` 自动混音并压低配乐。
 
@@ -29,11 +29,12 @@ scripts/install.sh --link           # 开发模式：软链当前目录
 scripts/install.sh --force          # 覆盖旧版本
 ```
 
-手动安装也可以：把整个 `brief-to-video/` 目录复制到 `~/.qoder/skills/`。安装后重启会话或 `/skills reload`，用 `/brief-to-video` 调用。版本见 `VERSION`，许可为 MIT（`LICENSE`）。模板工程首次使用需 `npm install`（puppeteer-core + ffmpeg installer）。
+手动安装也可以：把整个 `brief-to-video/` 目录复制到 `~/.qoder/skills/`。安装后重启会话或 `/skills reload`，用 `/brief-to-video` 调用。版本见 `VERSION`（2.0.0），许可为 MIT（`LICENSE`），设计方法来源与许可见 `ATTRIBUTIONS.md`。模板工程首次使用需 `npm install`（puppeteer-core + ffmpeg installer）。
 
 ## 先读什么
 
 - 选 look 读 `references/looks.md`：12 个方向、自动选择规则、版式/竖屏/素材。
+- 想知道“为什么这样好看、该改哪个文件”读 `references/design-dna.md`：Ground→Content→Moment 三层、8 个引擎、借来的设计方法、签名动作、反套路黑名单。
 - 动画面之前读 `references/design-taste.md`：反 AI 俗套、字体/间距/层级/动效/节奏的硬规则。
 - 选主题读 `references/styles.md`：5 个主题、令牌契约、如何加第 6 个。
 - 拿到 brief 读 `references/brief-to-beats.md`：拆句、定 7 拍、写字幕与文案。
@@ -81,6 +82,8 @@ node tools/pick-look.js "成都，城市宣传片，文化"
 | AI、开发者工具、硬件、安全 | `tech-split` | `tech-grid` |
 
 拿不准就用 `auto`，并在交付时报告自动选择结果。**不要为了“高级”强行用 poster**：正文超过两行、信息密度高的片子用 poster 会丢信息；poster 是口号/预告的语法，不是万能模板。
+
+每个 look 还绑定一个视觉引擎（背景氛围层）：ink → `halftone`/`riso`，quiet → `bokeh`，swiss → `orbit`，cinema → `dust`/`aurora`，tech → `flow`/`scan`。引擎由 `js/looks.js` 的 `ENGINES` 决定，通常不需要手动改；要换氛围用 `?engine=` 或 `config.engine`，但**一帧只允许一个引擎**，且引擎不能替代构图。详见 `references/design-dna.md`。
 
 覆盖方式：建工程 `--look`，渲染 `--look`，预览按 `K`；`?look=` / `?style=` / `?layout=` 可单独覆盖。优先级 URL > CLI > `config` > look 默认。
 
@@ -206,11 +209,12 @@ S.push({
 - **颜色只用 `var(--token)`**，不写 `#hex`/`rgba()`；插画用 `--ill-ink/--ill-paper/--warm`。
 - 新增/删除场景后同步改 `index.html` 的脚本顺序。
 
-### 6. 环境体检 + 静态检查
+### 6. 环境体检 + 静态检查 + 单测
 
 ```bash
 npm run doctor   # Node/依赖/Chrome/ffmpeg/磁盘/主题/配乐
 npm run check
+npm test         # look/引擎绑定/config/剧本/CLI 契约，秒级，不需要浏览器
 ```
 
 `doctor` 把“渲染到一半才发现没 Chrome/磁盘不够”提前暴露：4K 全片按 8.5MB/帧估算，空间不足会直接标红。`check` 必须全部通过。检查内容：配置合法（含 `style` 指向存在的主题、`tcFps`）、主题令牌契约（必需令牌、`html[data-style]` 选择器、花括号平衡）、WCAG 对比度（正文 ≥10:1、字幕 ≥7:1、强调色 ≥3:1、弱化字 ≥4.5:1）、字幕有序/不重叠/阅读速度/跨切点告警、场景覆盖、剧本节、引用齐全、JS 语法、CSS 裸数字、颜色字面量（CSS 报错、JS 警告）。
@@ -218,14 +222,17 @@ npm run check
 ### 7. 自动体检（一条命令）
 
 ```bash
-npm run qa          # = 静态检查 → 版式 → 节奏 → 抽帧，汇总写 qa/summary.json
+npm run qa          # = 静态检查 → 版式 → 节奏 → 引擎 → 抽帧，汇总写 qa/summary.json
 npm run qa:layout   # 只量文字：出框、祖先裁切、nowrap 溢出、字幕压字、运行时报错
 npm run qa:timing   # 只跑节奏探针：占位符/未解析变量/70% 后残影/字幕是否该出现/空尾帧
+npm run qa:engines  # 12 个 look 的引擎逐一体检：绑定、单层、有内容、可复现、确实在动
+node tools/qa-regress.js . --update   # 有意改设计后重建 SSIM 基线（仅本机）
+node tools/qa-regress.js .            # 与基线比；worst < 0.985 即报警
 node tools/qa-all.js . --look ink-poster              # 换 look 回归
 node tools/qa-all.js . --look quiet-editorial --layout split
 ```
 
-`qa-layout` 每场景采样 15/45/75/90% + 每条字幕中点（43 个时刻），报告 `qa/layout.json`。有 ERROR 先修，不要带着出框或占位符抽帧审片。`qa:all` 在静态检查失败时会停下并指向具体文件。换 look、换版式、竖屏都要重跑；样片墙只用于审美目检，不能替代 QA。
+`qa-layout` 每场景采样 15/45/75/90% + 每条字幕中点（43 个时刻），报告 `qa/layout.json`。有 ERROR 先修，不要带着出框或占位符抽帧审片。`qa:all` 在静态检查失败时会停下并指向具体文件。换 look、换版式、竖屏都要重跑；样片墙只用于审美目检，不能替代 QA。**改了引擎或主题质感后必须跑 `qa:engines`**：它会直接读 Canvas 像素，确认引擎没有白画、没有变成两层、同一时刻两次渲染一致、时间推进确实有变化。
 
 ### 8. 抽帧目检（不要跳过）
 
@@ -253,9 +260,10 @@ node tools/style-gallery.js . --themes cinema    # 只出一套
 ```bash
 npm run look:gallery                            # 12 个 look × 3 帧 → qa/looks/gallery.html
 node tools/look-gallery.js . --looks ink-poster,swiss-split
+node tools/contact-sheet.js . --out qa/contact-sheet.jpg   # 12 look 一页总览（带标签）
 ```
 
-看样片墙时重点：同一场景在 12 个方向下是否都成立；poster 的正文是否太挤；grid 的信息是否真的对齐；split 的左右两侧是否有一侧过空。选定后再跑该 look 的 `qa` 和抽帧。
+看样片墙时重点：同一场景在 12 个方向下是否都成立；poster 的正文是否太挤；grid 的信息是否真的对齐；split 的左右两侧是否有一侧过空；背景引擎是否喧宾夺主。选定后再跑该 look 的 `qa` 和抽帧。
 
 ### 9. 配乐、旁白与全片渲染
 
@@ -313,9 +321,13 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0                     # 从成片�
 | `npm run look:gallery` | 12 个 look 各出 3 帧，生成样片墙 `qa/looks/gallery.html` |
 | `npm run doctor` | 环境体检：Node/依赖/Chrome/ffmpeg/磁盘/主题/配乐 |
 | `npm run check` | 配置/look/版式/对比度/剧本/场景/素材/语法/颜色令牌静态检查 |
-| `npm run qa` | 一条命令跑完：静态 → 版式 → 节奏 → 抽帧，汇总 `qa/summary.json` |
+| `npm test` | look 目录/引擎绑定/config/剧本/CLI 契约单测 |
+| `npm run qa` | 一条命令跑完：静态 → 版式 → 节奏 → 引擎 → 抽帧，汇总 `qa/summary.json` |
 | `npm run qa:layout` | 逐场景量版式（43 个时刻），报告 `qa/layout.json` |
 | `npm run qa:timing` | 43 个采样点查占位符/残影/字幕/空帧，报告 `qa/timing.json` |
+| `npm run qa:engines` | 12 个 look 的引擎像素体检，报告 `qa/engines.json` |
+| `node tools/qa-regress.js .` | SSIM 视觉回归；`--update` 重建本机基线 |
+| `node tools/contact-sheet.js . --out qa/sheet.jpg` | 12 look 一页总览（带标签） |
 | `npm run qa:stills` | 切点、中点、82% 收尾、封面抽帧到 `qa/stills/` |
 | `npm run styles` | 5 个主题各出 3 帧静帧到 `qa/styles/` |
 | `npm run media` | 扫描 `assets/media/`，视频抽帧，写 `js/media.generated.js` |
@@ -346,7 +358,7 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0                     # 从成片�
 9. **音乐只做底**：无旁白时增益 0.55，有旁白时约 0.40 并开侧链闪避；不要盖过字幕与口播。
 10. **先 1080p 审片再 4K**：4K 渲染约 15–25 分钟，不要用 4K 试错。
 11. **默认代码绘制，素材按需接入**：没有用户素材时不要下载图库；有素材时放 `assets/media/` 并跑 `npm run media`，不要手写图片路径到场景里。
-12. **交付前必须真跑**：doctor、check、qa（版式/节奏/抽帧）、encode、ffmpeg 验证都通过，才算完成。
+12. **交付前必须真跑**：doctor、test、check、qa（版式/节奏/引擎/抽帧）、qa-regress、encode、ffmpeg 验证都通过，才算完成。
 13. **转场只在一处调**：硬切与纸色闪白由 `js/timeline.js` 的 `FLASH_*` 控制，场景里不要再写淡入淡出或 CSS transition。
 14. **文案只有一个源**：所有可见文字先进 `js/script.js`；场景里写死文案会在改主题时漏改。
 15. **颜色只有一个源**：场景里只写 `var(--token)`；改主题只改 `styles/themes/*.css`，不改布局代码。
@@ -354,6 +366,9 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0                     # 从成片�
 17. **版式不靠猜**：auto 只是建议；如果 brief 信息密度高，别用 poster；如果左右内容都很重，别用 split。选完必须抽帧看。
 18. **竖屏不是横屏缩小**：用 `--vertical` 让 `portrait.css` 重排；不要靠裁切或缩放，字幕必须落在底部安全区。
 19. **旁白在字幕定稿后生成**：改文案后重跑 `npm run voice`；旁白超槽位先改文本，不要盲目提速到听不清。
+20. **引擎是背景，不是内容**：一帧只允许一个引擎，永远在内容之下；遮住引擎画面就散，说明版式没做完。深色底不用 `multiply`，同画面不叠两种印刷/屏幕语言。
+21. **引擎只依赖时间**：绘制里禁止 `Math.random()` / `Date.now()`，随机必须走 `rnd(seed)`；否则断点续渲与 4K 复现都会崩。
+22. **改设计必须过回归**：改引擎/主题/版式后跑 `npm run qa:engines`，再跑 `qa-regress` 与基线比对；有意变化用 `--update`，无意变化必须修回。
 
 ## 资源导航
 
@@ -365,21 +380,30 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0                     # 从成片�
 - `assets/template/tools/look-gallery.js`：12 个 look 样片墙。
 - `assets/template/tools/voiceover.js`：macOS `say` 旁白，按字幕时间轴拼成 WAV。
 - `assets/template/tools/prep-media.js`：图片/视频 → 场景素材清单，视频自动抽帧。
-- `assets/template/tools/qa-all.js`：一条命令跑完 check → layout → timing → stills，汇总 `qa/summary.json`。
+- `assets/template/tools/qa-all.js`：一条命令跑完 check → layout → timing → engines → stills，汇总 `qa/summary.json`。
 - `assets/template/tools/qa-layout.js`：自动量版式与字幕碰撞（每场景 15/45/75/90% + 字幕中点）。
 - `assets/template/tools/qa-timing.js`：节奏探针（占位符/残影/字幕/空帧）。
+- `assets/template/tools/qa-engines.js`：逐 look 读 Canvas 像素，验引擎绑定/单层/可复现/时序变化。
+- `assets/template/tools/qa-regress.js`：SSIM 视觉回归，基线在 `qa/baseline/`（本机资产）。
+- `assets/template/tools/contact-sheet.js`：12 look 一页总览，直接产出带标签的 JPEG。
 - `assets/template/tools/qa-stills.js`：切点/中点/收尾/封面抽帧。
 - `assets/template/tools/style-gallery.js`：按主题批量出静帧。
 - `assets/template/tools/grab.js`：从成片回抽帧。
-- `assets/template/`：完整可跑的影片工程（5 主题 + 4 版式 + 12 look + 7 场景 + 剧本层 + 竖屏 + 渲染/编码/配乐/旁白/素材）。
+- `assets/template/`：完整可跑的影片工程（5 主题 + 4 版式 + 12 look + 8 引擎 + 7 场景 + 剧本层 + 竖屏 + 测试 + 渲染/编码/配乐/旁白/素材）。
+- `assets/template/js/engines.js`：8 个确定性 Canvas 引擎（halftone/riso/bokeh/dust/aurora/flow/scan/orbit）。
+- `assets/template/styles/engines.css`：引擎层混合模式、素材调色、每 look 的颗粒/暗角。
 - `references/looks.md`：12 个 look、自动选择、版式、竖屏、素材、样片墙。
-- `assets/looks-contact-sheet.jpg`：四宫格 look 总览（ink-poster / swiss-grid / cinema-poster / quiet-split）。
+- `assets/looks-contact-sheet.jpg`：12 look 一页总览（带主题/版式/引擎标签，第 29.2s 帧）。
+- `references/design-dna.md`：三层结构、引擎目录、借来的设计方法、签名动作、反套路黑名单。
 - `references/design-taste.md`：反俗套、字体/间距/层级/动效/节奏。
 - `references/brief-to-beats.md`：一句话 → 7 拍 → 文案/字幕。
 - `references/styles.md`：5 个主题、令牌契约、加第 6 个主题。
 - `references/scene-authoring.md`：场景写法、辅助函数、素材接入、节奏预算、坑。
 - `references/art-direction.md`：构图、字号层级、插画、品质线。
 - `references/pipeline.md`：CLI 全参数、产物、故障排查、交付规格。
+- `assets/template/test/unit.test.js`：不启浏览器的契约单测（`npm test`）。
+- `.github/workflows/qa.yml`：push/PR 自动跑单测、静态检查、引擎/版式/节奏体检。
+- `ATTRIBUTIONS.md`：Taste Skill（MIT）、Impeccable / Anthropic frontend-design（Apache-2.0）的方法来源与落点。
 - `VERSION` / `LICENSE`：版本与 MIT 许可证。
 
 ## 如果用户只想要“快”

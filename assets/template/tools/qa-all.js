@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 一条命令跑完内容体检：静态检查 → 版式 → 节奏 → 抽帧。
+ * 一条命令跑完内容体检：静态检查 → 版式 → 节奏 → 视觉引擎 → 抽帧。
  * 静态检查不过就停下；其余步骤全部跑完再汇总，报告写入 qa/。
  *
  *   node qa-all.js [project-dir] [--style swiss] [--scale 1] [--skip-stills] [--json qa/summary.json]
@@ -14,7 +14,6 @@ const { spawnSync } = require('child_process');
 const args = process.argv.slice(2);
 let root = '.';
 const opts = { style: null, look: null, layout: null, scale: null, skipStills: false, json: 'qa/summary.json' };
-
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === '--style') opts.style = args[++i];
@@ -83,6 +82,10 @@ function main() {
   const timingArgs = passthrough(['tools/qa-timing.js', '.', '--json', 'qa/timing.json']);
   steps.push(run('qa-timing', timingArgs));
 
+  const engineArgs = ['tools/qa-engines.js', '.', '--looks', look, '--json', 'qa/engines.json'];
+  if (opts.scale) engineArgs.push('--scale', opts.scale);
+  steps.push(run('qa-engines', engineArgs));
+
   const stillsDir = opts.look ? 'qa/looks/' + look : (opts.style ? 'qa/styles/' + style : 'qa/stills');
   if (!opts.skipStills) {
     const stillsArgs = ['tools/qa-stills.js', '.', '--out', stillsDir];
@@ -104,6 +107,7 @@ function finish(steps) {
   const ran = new Set(steps.map(s => s.name));
   const layout = ran.has('qa-layout') ? readReport('qa/layout.json') : null;
   const timing = ran.has('qa-timing') ? readReport('qa/timing.json') : null;
+  const engines = ran.has('qa-engines') ? readReport('qa/engines.json') : null;
   const errors = [];
   const warnings = [];
   if (layout) {
@@ -113,6 +117,11 @@ function finish(steps) {
   if (timing) {
     timing.errors.forEach(e => errors.push('timing ' + e));
     timing.warnings.forEach(w => warnings.push('timing ' + w));
+  }
+  if (engines) {
+    (engines.looks || []).forEach(l => {
+      (l.checks || []).filter(c => !c.ok).forEach(c => errors.push('engine ' + l.id + ' ' + c.name + '：' + c.detail));
+    });
   }
   const broken = steps.filter(s => s.code !== 0);
   const stillsDir = opts.look ? 'qa/looks/' + look : (opts.style ? 'qa/styles/' + style : 'qa/stills');
@@ -152,7 +161,7 @@ function finish(steps) {
   }
   console.log('\n报告 ' + opts.json + (stills ? ' · 抽帧 ' + stills + ' 张（' + stillsDir + '/）' : ''));
   if (summary.ok) {
-    console.log('通过：静态、版式、节奏' + (opts.skipStills ? '' : '、抽帧') + '。');
+    console.log('通过：静态、版式、节奏、引擎' + (opts.skipStills ? '' : '、抽帧') + '。');
   } else {
     console.log(broken.length ? '有 ' + broken.length + ' 个步骤失败，先修再渲染。' : '体检发现 ' + errors.length + ' 个问题，先修再渲染。');
     process.exitCode = 1;

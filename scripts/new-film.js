@@ -175,7 +175,7 @@ function main() {
   const chrome = chromePath();
   console.log('\n✓ 工程已创建：' + target);
   console.log('  片名：' + title + (opts.duration ? '  ·  ' + opts.duration + 's' : '') + '  ·  ' + (opts.width || 1920) + 'x' + (opts.height || 1080));
-  console.log('  Look：' + resolved.look.id + '（' + resolved.look.theme + ' / ' + (opts.layout || resolved.look.layout) + ' / ' + resolved.look.motion + '）' + (opts.look ? ' 手动' : ' 自动'));
+  console.log('  Look：' + resolved.look.id + '（' + resolved.look.theme + ' / ' + (opts.layout || resolved.look.layout) + ' / ' + resolved.look.motion + ' / ' + resolved.look.engine + '）' + (opts.look ? ' 手动' : ' 自动'));
   if (opts.duration && opts.duration < 50) {
     console.log('  注意：模板字幕按 60s 编写，' + opts.duration + 's 片请把字幕减到 ' + (opts.duration <= 15 ? '≤ 7' : '≤ 12') + ' 条，并缩短单条文字（check 会报语速偏快）。');
   }
@@ -188,10 +188,13 @@ function main() {
   console.log('  npm run preview               # 本地预览：S 轮换主题 / L 轮换版式 / K 轮换 look');
   console.log('  node tools/pick-look.js --list # 查看 12 个 look');
   console.log('  npm run doctor                # 环境体检：Node/依赖/Chrome/ffmpeg/磁盘');
+  console.log('  npm test                      # 契约单测：look/引擎/config/剧本/CLI');
   console.log('  npm run check                 # 配置/风格契约/对比度/场景/剧本/颜色令牌检查');
-  console.log('  npm run qa                    # 一条命令：静态 → 版式 → 节奏 → 抽帧');
+  console.log('  npm run qa                    # 一条命令：静态 → 版式 → 节奏 → 引擎 → 抽帧');
   console.log('  npm run qa:layout             # 只量版式：出框/裁切/字幕压字');
   console.log('  npm run qa:timing             # 只跑节奏探针：占位符/暗显/字幕错位');
+  console.log('  npm run qa:engines            # 只验引擎：绑定/单层/可复现/确实在动');
+  console.log('  node tools/qa-regress.js .    # 与 qa/baseline/ 做 SSIM 视觉回归');
   console.log('  npm run qa:stills             # 只抽帧：切点/收尾/封面');
   console.log('  npm run styles                # 5 个主题各出一组静帧，挑风格');
   console.log('  node render.js --scale 1 --from 0 --to 12   # 低成本试渲');

@@ -98,7 +98,7 @@ color-mix(in srgb, var(--ink) 20%, transparent)
 ```bash
 npm run check
 node tools/style-gallery.js . --themes <name>   # 12%/42%/78% 三帧
-node tools/qa-all.js . --style <name>           # 版式 + 节奏 + 抽帧 + 汇总
+node tools/qa-all.js . --style <name>           # 版式 + 节奏 + 引擎 + 抽帧 + 汇总
 ```
 
 主题不算“完成”，直到三帧静帧与整套 QA 都干净。

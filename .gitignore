@@ -1,0 +1,9 @@
+.DS_Store
+node_modules/
+frames/
+out/
+stills/
+qa/
+assets/template/assets/music.wav
+assets/template/assets/voiceover.wav
+assets/template/assets/voiceover.json

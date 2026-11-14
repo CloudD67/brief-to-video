@@ -1,0 +1,126 @@
+# Look 视觉目录
+
+Look = 主题（theme）+ 版式（layout）+ 动效气质（motion）。主题决定颜色/字体/质感，版式决定信息骨架，motion 决定运镜与闪白的力度。**三者分开**，所以 5 个主题 × 4 个版式能组成很多方向；内置 12 个经过挑选的组合，既不把审美定死，也不让 AI 每次从零发明。
+
+## 12 个 curated look
+
+| id | 名称 | 主题 / 版式 / 动效 | 适合 | 一句话气质 |
+|---|---|---|---|---|
+| `ink-editorial` | 铅印 · 编辑 | letterpress / editorial / calm | 品牌片、工作室、文化活动 | 米纸、宋体、朱红与裁切标记；像一本会动的刊物 |
+| `ink-poster` | 铅印 · 海报 | letterpress / poster / snappy | 发布、演出、宣言、动态海报 | 一句话占满画面，信息退到边缘 |
+| `ink-grid` | 铅印 · 年鉴 | letterpress / grid / precise | 报告、白皮书、研究、档案 | 十二栏与索引编号，把判断变成可核对的秩序 |
+| `quiet-editorial` | 暖白 · 日常 | quiet / editorial / calm | 咖啡、餐饮、生活方式、疗愈 | 暖白、低对比、鼠尾草绿；不喊口号 |
+| `quiet-poster` | 暖白 · 留白 | quiet / poster / calm | 极简品牌、展览、静态海报 | 大留白与居中短句，只保留一个呼吸点 |
+| `quiet-split` | 暖白 · 对照 | quiet / split / calm | 服务、门店、课程、体验介绍 | 像一张摊开的说明书，读完知道下一步 |
+| `swiss-grid` | 瑞士 · 网格 | swiss / grid / precise | 科技、软件、数据、建筑、企业 | 冷白、正红、十二栏；只让结构说话 |
+| `swiss-split` | 瑞士 · 产品 | swiss / split / precise | 产品功能、SaaS、功能介绍 | 左栏讲清楚，右栏给证据；一屏一个卖点 |
+| `cinema-editorial` | 银幕 · 叙事 | cinema / editorial / cinematic | 影像、故事、高端品牌 | 近黑、金字、上下黑边；字幕像旁白 |
+| `cinema-poster` | 银幕 · 预告 | cinema / poster / cinematic | 首映、舞台、悬念预告 | 居中大字与黑场，信息越少期待越重 |
+| `tech-split` | 终端 · 分栏 | tech / split / precise | AI、开发者工具、硬件、安全 | 深蓝黑、青色信号、等宽标签 |
+| `tech-grid` | 终端 · 仪表 | tech / grid / precise | 数据平台、监控、系统说明 | 扫描线、网格、状态；像工作中的仪表盘 |
+
+完整关键词见 `assets/template/js/looks.js` 的 `keywords`；`node tools/pick-look.js --list` 会列出全部。
+
+## 自动选择（默认）
+
+`config.look: 'auto'` 时，用 `brief + title + slogan + brandSub` 做关键词计分：
+
+1. 每个命中关键词 +3（长度 ≥3）或 +2（短词）。
+2. 指定主题时，同主题 +5，其他主题 −8。
+3. brief 出现「海报 / 预告」→ poster 版式 +2；「网格 / 数据 / 仪表 / 报告」→ grid +2；「分栏 / 对照 / 产品 / 功能」→ split +2。
+4. 取最高分；没有命中则回退到同主题的编辑版式，最终兜底 `ink-editorial`。
+
+结果带 `confidence`（high / medium / fallback）、命中的关键词和 3 个备选，渲染日志会打印。**自动选择是建议，不是锁死**：任何一层都可以手动覆盖。
+
+```bash
+node tools/pick-look.js "成都，城市宣传片，文化"        # 推荐 + 命中词 + 备选
+node tools/pick-look.js "数据平台发布" --theme tech     # 主题约束下重排
+node tools/pick-look.js "产品功能介绍" --layout split   # 只改版式
+node tools/pick-look.js --json "咖啡店，日常温暖"       # 给程序读
+```
+
+## 覆盖层级（从软到硬）
+
+```bash
+# 建工程时指定
+node scripts/new-film.js ./film --title "北岸咖啡" --look quiet-editorial
+node scripts/new-film.js ./film --title "山野来信" --vertical --look quiet-poster
+
+# 渲染时临时指定
+node render.js --look swiss-grid
+node render.js --look auto --style quiet --layout split
+
+# 预览时键盘切换（不写回文件）
+npm run preview     # S 主题 / L 版式 / K look
+```
+
+URL 也支持 `?look=ink-poster&style=letterpress&layout=poster`，便于同一工程截多套图。优先级：URL > CLI > `config` > look 默认值。
+
+## 版式
+
+| 版式 | 骨架 | 适合 | 不要这样用 |
+|---|---|---|---|
+| `editorial` | 非对称左文右图，栏线与编号 | 大多数叙事/品牌片 | 需要一屏对照时信息会散 |
+| `poster` | 居中等宽文案，画面压到边缘 | 海报、预告、口号 | 正文超过 2 行会拥挤 |
+| `grid` | 十二栏、水平细线、严格基线 | 数据、系统、报告 | 情绪片会显得冷 |
+| `split` | 左文右图硬分栏 + 竖分隔线 | 产品、功能、对照 | 左右都放密集内容会像说明书 |
+
+版式覆盖写在 `styles/layouts.css`，只改坐标/层级，不回写场景动画。场景把文案包在 `.copy`、画面包在 `.vis-cluster`，版式层才能整体移动；自己写场景时保持这两个 wrapper。
+
+## Motion
+
+| id | 名称 | camera | flash | 适合 |
+|---|---|---|---|---|
+| `calm` | 克制 | 0.55 | 0.78 | 生活、文化、品牌 |
+| `precise` | 精准 | 0.82 | 0.90 | 产品、数据、系统 |
+| `snappy` | 利落 | 1.18 | 1.08 | 海报、发布、短视频 |
+| `cinematic` | 电影感 | 0.74 | 0.50 | 预告、影像、高端 |
+
+motion 只调 `timeline.js` 的连续运镜幅度与切点闪白，不改变场景内部动画。
+
+## 竖屏 9:16
+
+```bash
+node scripts/new-film.js ./vertical --title "山野来信" --vertical --look quiet-editorial
+```
+
+- 画布 1080×1920；文案在上、画面在中间 1920×1080 横带，底部留字幕安全区。
+- `styles/portrait.css` 重排页眉、字号、`.copy`、`.vis-cluster` 和字幕；无需改场景代码。
+- 竖屏 + poster 会去掉纸张水印，grid 收成 6 栏，split 隐藏竖分隔线。
+- 竖屏也跑 `npm run qa`：`qa-layout` / `qa-timing` / `qa-stills` 会自动读 `data-aspect`。
+
+## 素材与 look 的关系
+
+真实素材只替换「印刷照片」占位图，不改变主题/版式。图片会继承主题的网点、暗角、纸色混合，所以 12 个 look 都能直接用。
+
+```bash
+# 文件名以场景 id 开头；视频会抽帧
+cp alley.jpg assets/media/s1-alley.jpg
+cp store.mp4 assets/media/s4-store.mp4
+npm run media      # → js/media.generated.js
+npm run check
+```
+
+多张图会在片内按进度切换，并有确定性的 Ken Burns（由 `--scene-p` 驱动，暂停/逐帧渲染也一致）。详见 `scene-authoring.md`。
+
+## 样片墙
+
+随包有一张四宫格总览（ink-poster / swiss-grid / cinema-poster / quiet-split）：`assets/looks-contact-sheet.jpg`。完整的 12 look 静帧用工具生成：
+
+```bash
+npm run look:gallery                          # 12 个 look × 3 帧
+node tools/look-gallery.js . --looks ink-poster,tech-split
+node tools/look-gallery.js . --at 6,26,47
+open qa/looks/gallery.html
+```
+
+用于交付前目检所有审美方向，或给客户做风格提案。
+
+## 增加第 13 个 look
+
+1. 在 `js/looks.js` 的 `LOOKS` 里加一条：`{ id, name, en, theme, layout, motion, bestFor, desc, keywords }`。
+2. `node tools/check-project.js .` 会校验 id、主题文件、版式选择器与 keywords。
+3. 跑 `node tools/look-gallery.js . --looks <新 id>` 目检。
+4. 不需要改场景；只有当新 look 需要全新骨架时，才在 `styles/layouts.css` 增加 `html[data-layout="..."]`。
+
+审美方向是开放的：12 个是起点，不是白名单。

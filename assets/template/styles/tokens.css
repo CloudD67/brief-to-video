@@ -1,0 +1,99 @@
+/* ============================================================
+   语义令牌 · SEMANTIC TOKENS
+   所有颜色、字体、质感、阴影只在这里和 styles/themes/*.css 里定义。
+   场景 CSS 只允许使用 var(--token)，不允许写死颜色。
+   默认值 = 铅印 / LETTERPRESS。
+   ============================================================ */
+
+:root {
+  /* ---------- 画布 ---------- */
+  --stage-bg: #0b0a08;
+  --fade-color: #0b0a08;
+  --flash-color: var(--paper-2);
+
+  /* ---------- 表面 ---------- */
+  --paper: #e8e1d1;
+  --paper-2: #f0ebde;
+  --paper-3: #ddd4c1;
+  --paper-4: #cfc5ae;
+  --paper-hi: #fffdf5;
+
+  /* ---------- 墨色 ---------- */
+  --ink: #15140f;
+  --ink-2: #3f3b32;
+  --mute: #625d52;
+  --faint: #938c7c;
+
+  /* ---------- 强调色 ---------- */
+  --accent: #c93b22;
+  --accent-2: #e0603f;
+  --red: var(--accent);
+  --red-2: #a82e18;
+
+  /* ---------- 深色版 ---------- */
+  --dark: #17150f;
+  --dark-2: #211d16;
+  --dark-3: #2c271e;
+  --edge: #0b0a07;
+  --on-dark: #ece5d4;
+  --on-dark-2: #b8ad99;
+  --on-dark-3: #8d8474;
+  --on-dark-4: #615a4c;
+
+  /* ---------- 线 ---------- */
+  --hair: color-mix(in srgb, var(--ink) 20%, transparent);
+  --hair-2: color-mix(in srgb, var(--ink) 46%, transparent);
+
+  /* ---------- 字体 ---------- */
+  --font-display: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  --font-serif: var(--font-display);
+  --font-sans: "Hiragino Sans GB", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", "Menlo", "Roboto Mono", monospace;
+
+  --title-weight: 900;
+  --title-track: -0.015em;
+  --name-track: 0.012em;
+  --h1-size: 148px;
+  --h2-size: 92px;
+  --body-size: 31px;
+
+  /* ---------- 字幕 ---------- */
+  --sub-font: var(--font-display);
+  --sub-size: 58px;
+  --sub-weight: 900;
+  --sub-color: var(--ink);
+  --sub-track: 0.012em;
+  --sub-marker: var(--accent);
+  --sub-align: left;
+
+  /* ---------- 质感 ---------- */
+  --grain: 0.062;
+  --fiber: 0.5;
+  --vignette: 17%;
+  --halftone: 0.3;
+  --scanlines: 0;
+  --letterbox: 0px;
+  --letterbox-color: #000000;
+
+  /* ---------- 形状 / 阴影 ---------- */
+  --radius: 0px;
+  --shadow-hard: 10px 13px 0 color-mix(in srgb, var(--ink) 5%, transparent);
+  --shadow-soft: 0 24px 40px color-mix(in srgb, var(--ink) 13%, transparent);
+  --shadow-card: 0 18px 34px color-mix(in srgb, var(--ink) 14%, transparent);
+  --shadow-panel: 26px 30px 0 color-mix(in srgb, var(--ink) 10%, transparent),
+                  0 44px 80px color-mix(in srgb, var(--ink) 22%, transparent);
+  --inset-shade: rgba(0, 0, 0, 0.35);
+
+  /* ---------- 插画 ---------- */
+  --ill-ink: #15140f;
+  --ill-paper: #f6f0df;
+  --warm: #ffecC6;
+
+  /* 印刷照片的六组影调（主题可整组替换） */
+  --f1-sky: #f3ecd9; --f1-mid: #d6c8a8; --f1-gnd: #7d7057;
+  --f2-sky: #efe2c6; --f2-mid: #c9b489; --f2-gnd: #5f5540;
+  --f3-sky: #f8f2e1; --f3-mid: #ded3b8; --f3-gnd: #9a8d72;
+  --f4-sky: #e2d3b2; --f4-mid: #a9956f; --f4-gnd: #433a2b;
+  --f5-sky: #f6efdd; --f5-mid: #d9cbb0; --f5-gnd: #8d8067;
+  --f6-sky: #e8e3d2; --f6-mid: #bfb69c; --f6-gnd: #565043;
+}

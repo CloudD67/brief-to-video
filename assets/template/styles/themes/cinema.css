@@ -1,0 +1,136 @@
+/* ============================================================
+   电影黑场 / CINEMA
+   参考作者电影片头：近黑底、暖金强调、衬线大标题、遮幅黑边、居中字幕。
+   适合：品牌宣言、人物故事、活动开场、需要“重量感”的题材。
+   ============================================================ */
+
+html[data-style="cinema"] {
+  --stage-bg: #000000;
+  --fade-color: #000000;
+  --flash-color: #e9d9b8;
+
+  --paper: #14110c;
+  --paper-2: #1a160f;
+  --paper-3: #0f0d09;
+  --paper-4: #241e14;
+  --paper-hi: #2c2418;
+
+  --ink: #efe6d3;
+  --ink-2: #d2c5ab;
+  --mute: #9a8f7a;
+  --faint: #6f6656;
+
+  --accent: #c9a45c;
+  --accent-2: #e3c07d;
+  --red-2: #a8823f;
+
+  --dark: #0b0906;
+  --dark-2: #12100a;
+  --dark-3: #1b1710;
+  --edge: #000000;
+  --on-dark: #ece3cf;
+  --on-dark-2: #c3b699;
+  --on-dark-3: #948a76;
+  --on-dark-4: #645c4c;
+
+  --hair: color-mix(in srgb, var(--ink) 18%, transparent);
+  --hair-2: color-mix(in srgb, var(--ink) 40%, transparent);
+
+  --font-display: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  --title-weight: 600;
+  --title-track: 0.005em;
+  --name-track: 0.06em;
+  --h1-size: 140px;
+  --h2-size: 88px;
+  --body-size: 30px;
+
+  --sub-font: var(--font-display);
+  --sub-size: 46px;
+  --sub-weight: 600;
+  --sub-color: #efe6d3;
+  --sub-track: 0.04em;
+  --sub-marker: var(--accent);
+  --sub-align: center;
+
+  --grain: 0.085;
+  --fiber: 0.22;
+  --vignette: 36%;
+  --halftone: 0.16;
+  --scanlines: 0;
+  --letterbox: 54px;
+  --letterbox-color: #000000;
+
+  --radius: 0px;
+  --shadow-hard: 0 0 0 transparent;
+  --shadow-soft: 0 30px 70px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 24px 54px rgba(0, 0, 0, 0.5);
+  --shadow-panel: 0 44px 90px rgba(0, 0, 0, 0.6);
+  --inset-shade: rgba(0, 0, 0, 0.55);
+
+  --ill-ink: #efe6d3;
+  --ill-paper: #17130d;
+  --warm: #ffd9a0;
+
+  --f1-sky: #2a2216; --f1-mid: #1b150e; --f1-gnd: #0c0906;
+  --f2-sky: #241d10; --f2-mid: #171108; --f2-gnd: #090705;
+  --f3-sky: #33291a; --f3-mid: #20180e; --f3-gnd: #0e0a06;
+  --f4-sky: #1d1710; --f4-mid: #120d08; --f4-gnd: #060504;
+  --f5-sky: #2e2617; --f5-mid: #1c150d; --f5-gnd: #0b0805;
+  --f6-sky: #262016; --f6-mid: #181209; --f6-gnd: #080604;
+}
+
+html[data-style="cinema"] .vignette {
+  box-shadow:
+    inset 0 0 320px color-mix(in srgb, #000000 62%, transparent),
+    inset 0 0 120px color-mix(in srgb, #000000 35%, transparent);
+}
+
+/* 字幕：剧中独白，居中，无时间码 */
+html[data-style="cinema"] #subs {
+  left: 180px;
+  width: 1560px;
+  bottom: 116px;
+}
+html[data-style="cinema"] #subs li {
+  left: 0;
+  font-style: italic;
+}
+html[data-style="cinema"] #subs li .tc { display: none; }
+html[data-style="cinema"] #subs li::before {
+  left: 50%;
+  top: -26px;
+  width: 44px;
+  height: 1px;
+  margin-left: -22px;
+}
+
+html[data-style="cinema"] #progress { display: none; }
+
+html[data-style="cinema"] .hdr {
+  top: 72px;
+  border-bottom-color: color-mix(in srgb, var(--ink) 14%, transparent);
+}
+html[data-style="cinema"] .hdr .l b,
+html[data-style="cinema"] .hdr .r { letter-spacing: 0.3em; }
+
+html[data-style="cinema"] .frame {
+  border-color: color-mix(in srgb, var(--ink) 24%, transparent);
+}
+html[data-style="cinema"] .frame::after {
+  background:
+    radial-gradient(70% 58% at var(--lx) var(--ly), rgba(255, 230, 180, 0.12), transparent 70%),
+    radial-gradient(64% 62% at var(--sx) var(--sy), rgba(0, 0, 0, 0.55), transparent 76%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.4), transparent 40%);
+}
+html[data-style="cinema"] .frame .no { color: color-mix(in srgb, var(--ink) 45%, transparent); }
+
+html[data-style="cinema"] .tag { border-color: color-mix(in srgb, var(--ink) 30%, transparent); }
+html[data-style="cinema"] .tag.on { background: var(--accent); border-color: var(--accent); color: #14110c; }
+
+html[data-style="cinema"] .sheet,
+html[data-style="cinema"] .s4-card { box-shadow: var(--shadow-card); }
+
+html[data-style="cinema"] .rule { background: color-mix(in srgb, var(--ink) 18%, transparent); }
+
+html[data-style="cinema"] .s6-name { letter-spacing: 0.06em; text-indent: 0.06em; }
+html[data-style="cinema"] .s6-rule { width: 220px; background: color-mix(in srgb, var(--accent) 70%, transparent); }

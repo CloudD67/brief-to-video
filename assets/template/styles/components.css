@@ -1,0 +1,206 @@
+/* ============================================================
+   通用组件 · COMPONENTS
+   只允许 var(--token)，颜色随 styles/themes/*.css 切换。
+   ============================================================ */
+
+/* ---------- 页眉 / 页脚标 ---------- */
+
+.hdr {
+  position: absolute; left: 96px; right: 96px; top: 54px;
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--hair-2);
+}
+.hdr .l { display: flex; align-items: center; gap: 16px; }
+.hdr .l i { width: 13px; height: 13px; background: var(--accent); display: block; }
+.hdr .l b { font: 600 16px/1 var(--font-mono); letter-spacing: 0.34em; color: var(--ink); }
+.hdr .l span { font: 12px/1 var(--font-mono); letter-spacing: 0.2em; color: var(--mute); }
+.hdr .r { font: 11px/1 var(--font-mono); letter-spacing: 0.22em; color: var(--mute); }
+.hdr .r em { font-style: normal; color: var(--accent); }
+
+.hdr.slim { left: 120px; right: 120px; top: 62px; border-bottom-color: var(--hair); }
+.hdr.slim .l b { font-size: 13px; letter-spacing: 0.3em; }
+.hdr.slim .l i { width: 10px; height: 10px; }
+
+/* ---------- 标题组 ---------- */
+
+.kick {
+  display: flex; align-items: center; gap: 14px;
+  font: 600 13px/1 var(--font-mono);
+  letter-spacing: 0.3em;
+  color: var(--accent);
+}
+.kick i { width: 26px; height: 1px; background: var(--accent); display: block; }
+
+.h1 {
+  font-family: var(--font-display);
+  font-weight: var(--title-weight);
+  font-size: var(--h1-size);
+  line-height: 0.98;
+  letter-spacing: var(--title-track);
+  color: var(--ink);
+}
+
+.h2 {
+  font-family: var(--font-display);
+  font-weight: var(--title-weight);
+  font-size: var(--h2-size);
+  line-height: 1.06;
+  letter-spacing: var(--title-track);
+  color: var(--ink);
+}
+
+.sub {
+  font-size: var(--body-size);
+  line-height: 1.62;
+  letter-spacing: 0.012em;
+  color: var(--ink-2);
+}
+.sub b { font-weight: 600; color: var(--ink); }
+
+/* ---------- 规格表 ---------- */
+
+.spec {
+  width: 560px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hair);
+  display: grid;
+  grid-template-columns: 136px 1fr;
+  row-gap: 11px;
+  font: 12px/1.5 var(--font-mono);
+  letter-spacing: 0.14em;
+  color: var(--mute);
+}
+.spec b { font-weight: 400; color: var(--ink-2); letter-spacing: 0.08em; }
+
+/* ---------- 纸片 / 印刷照片 ---------- */
+
+.frame {
+  --sky: var(--f1-sky);
+  --mid: var(--f1-mid);
+  --gnd: var(--f1-gnd);
+  --lx: 30%; --ly: 8%;
+  --sx: 66%; --sy: 76%;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(178deg, var(--sky) 0%, var(--mid) 52%, var(--gnd) 100%);
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius);
+}
+.frame .ph {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+  filter: contrast(1.04);
+}
+/* 网点：印刷照片的调子 */
+.frame::before {
+  content: "";
+  position: absolute; inset: 0; z-index: 2;
+  background-image: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--ink) 60%, transparent) 0 0.55px, transparent 1px);
+  background-size: 3px 3px;
+  mix-blend-mode: multiply;
+  opacity: var(--halftone);
+}
+.frame::after {
+  content: "";
+  position: absolute; inset: 0; z-index: 3;
+  background:
+    radial-gradient(70% 58% at var(--lx) var(--ly), color-mix(in srgb, var(--paper-hi) 36%, transparent), transparent 70%),
+    radial-gradient(64% 62% at var(--sx) var(--sy), color-mix(in srgb, var(--ink) 26%, transparent), transparent 76%),
+    linear-gradient(0deg, color-mix(in srgb, var(--ink) 16%, transparent), transparent 34%);
+  mix-blend-mode: multiply;
+}
+.frame.f1 { --sky: var(--f1-sky); --mid: var(--f1-mid); --gnd: var(--f1-gnd); }
+.frame.f2 { --sky: var(--f2-sky); --mid: var(--f2-mid); --gnd: var(--f2-gnd); --lx: 70%; --ly: 4%; --sx: 38%; --sy: 82%; }
+.frame.f3 { --sky: var(--f3-sky); --mid: var(--f3-mid); --gnd: var(--f3-gnd); --lx: 46%; --ly: 0%; --sx: 64%; --sy: 88%; }
+.frame.f4 { --sky: var(--f4-sky); --mid: var(--f4-mid); --gnd: var(--f4-gnd); --lx: 16%; --ly: 12%; --sx: 78%; --sy: 68%; }
+.frame.f5 { --sky: var(--f5-sky); --mid: var(--f5-mid); --gnd: var(--f5-gnd); --lx: 62%; --ly: 14%; --sx: 32%; --sy: 90%; }
+.frame.f6 { --sky: var(--f6-sky); --mid: var(--f6-mid); --gnd: var(--f6-gnd); --lx: 24%; --ly: 6%; --sx: 56%; --sy: 78%; }
+
+.frame .no {
+  position: absolute; left: 7px; top: 6px; z-index: 2;
+  font: 9px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  color: color-mix(in srgb, var(--ill-ink) 55%, transparent);
+}
+
+/* 真实素材：图片铺满纸片，网点与暗角减半；Ken Burns 由场景进度驱动 */
+.frame.media {
+  background: color-mix(in srgb, var(--ink) 88%, black);
+}
+.frame.media img {
+  position: absolute; inset: 0; z-index: 1;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform:
+    scale(calc(1.035 + var(--scene-p, 0) * 0.065))
+    translate3d(calc((0.5 - var(--scene-p, 0)) * 1.8%), calc((var(--scene-p, 0) - 0.5) * 1.6%), 0);
+  filter: saturate(0.94) contrast(1.03);
+}
+.frame.media::before { opacity: calc(var(--halftone) * 0.55); }
+.frame.media::after { opacity: 0.42; }
+.frame.media .no {
+  z-index: 4;
+  color: color-mix(in srgb, var(--paper-hi) 88%, transparent);
+  text-shadow: 0 1px 6px color-mix(in srgb, black 42%, transparent);
+}
+
+/* ---------- 标签 ---------- */
+
+.tag {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 11px;
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius);
+  font: 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.tag.on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper-2);
+}
+.tag.red { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- 纸卡 ---------- */
+
+.sheet {
+  background: var(--paper-2);
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------- 深色铅版 ---------- */
+
+.ink-panel {
+  background: var(--dark);
+  border: 1px solid var(--edge);
+  color: var(--on-dark);
+}
+
+/* ---------- 细节 ---------- */
+
+.rule { height: 1px; background: var(--hair); }
+.rule.dark { background: var(--hair-2); }
+.rule.red { background: var(--accent); }
+
+.mono { font-family: var(--font-mono); letter-spacing: 0.14em; }
+
+.folio {
+  font: 11px/1 var(--font-mono);
+  letter-spacing: 0.24em;
+  color: var(--mute);
+}
+.folio em { font-style: normal; color: var(--accent); }
+
+/* 文字遮罩上移 */
+.mask { display: inline-block; overflow: hidden; vertical-align: bottom; }
+.mask > span { display: inline-block; will-change: transform; }
+.mask.block { display: block; vertical-align: baseline; }
+.mask.block > span { display: block; }
+
+/* 逐字 */
+.chars span { display: inline-block; will-change: transform, opacity; }

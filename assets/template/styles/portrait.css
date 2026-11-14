@@ -1,0 +1,202 @@
+/* ============================================================
+   竖屏重排 · PORTRAIT (1080×1920)
+   data-aspect=portrait 时启用：文字在上，16:9 画面缩成中部展示带，
+   字幕留出底部安全区。场景内部坐标不改，整组缩放。
+   ============================================================ */
+
+html[data-aspect="portrait"] {
+  --h1-size: 104px;
+  --h2-size: 76px;
+  --body-size: 27px;
+  --sub-size: 50px;
+}
+
+html[data-aspect="portrait"] .hdr,
+html[data-aspect="portrait"] .hdr.slim {
+  left: 64px;
+  right: 64px;
+  top: 72px;
+}
+html[data-aspect="portrait"] .hdr .l span { display: none; }
+html[data-aspect="portrait"] .hdr .r { font-size: 10px; }
+
+html[data-aspect="portrait"] .s0-wrap {
+  padding: 0 64px 240px;
+  justify-content: center;
+}
+html[data-aspect="portrait"] .s0-name { white-space: normal; text-align: center; line-height: 1.08; }
+html[data-aspect="portrait"] .s0-rule { width: 720px; }
+html[data-aspect="portrait"] .s0-slogan { white-space: normal; text-align: center; }
+
+html[data-aspect="portrait"] .s1-lead,
+html[data-aspect="portrait"] .s2-lead {
+  left: 64px;
+  top: 208px;
+  width: 952px;
+}
+html[data-aspect="portrait"] .s1-lead .sub,
+html[data-aspect="portrait"] .s2-lead .sub { max-width: 900px; }
+
+html[data-aspect="portrait"] .s2-leg {
+  left: 64px;
+  top: 604px;
+  width: 952px;
+}
+
+/* 场景坐标是 inline style，竖屏重排必须带 !important */
+html[data-aspect="portrait"] .copy .kick { left: 64px !important; top: 208px !important; }
+html[data-aspect="portrait"] .copy .h2 { left: 64px !important; top: 258px !important; }
+html[data-aspect="portrait"] .copy .sub { left: 64px !important; top: 388px !important; width: 900px !important; }
+html[data-aspect="portrait"] .copy .s3-sent {
+  left: 64px;
+  top: 258px;
+  width: 952px;
+  font-size: 62px;
+  line-height: 1.34;
+}
+html[data-aspect="portrait"] .copy .s5-tags {
+  left: 64px;
+  top: 430px;
+  width: 952px;
+  flex-wrap: wrap;
+}
+
+html[data-aspect="portrait"] .vis-cluster {
+  left: 0;
+  top: 780px;
+  width: 1920px;
+  height: 1080px;
+  transform: scale(0.5625);
+  transform-origin: top left;
+  opacity: 1;
+  filter: none;
+  z-index: 5;
+}
+
+html[data-aspect="portrait"] .vis-s2 { top: 800px; }
+html[data-aspect="portrait"] .vis-s3 { top: 760px; }
+html[data-aspect="portrait"] .vis-s4 { top: 780px; }
+html[data-aspect="portrait"] .vis-s5 { top: 800px; }
+html[data-aspect="portrait"] .vis-s6 { top: 900px; }
+
+html[data-aspect="portrait"] .vis-cluster::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 2px var(--hair-2);
+  pointer-events: none;
+}
+
+html[data-aspect="portrait"] .s6-wrap {
+  left: 64px;
+  right: 64px;
+  top: 300px;
+  width: auto;
+}
+html[data-aspect="portrait"] .s6-name { white-space: normal; text-align: center; line-height: 1.08; }
+html[data-aspect="portrait"] .s6-slogan { text-align: center; }
+html[data-aspect="portrait"] .s6-foot {
+  left: 64px;
+  right: 64px;
+  top: auto;
+  bottom: 232px;
+  gap: 16px;
+}
+
+html[data-aspect="portrait"] .s5-panel {
+  zoom: 0.56;
+  left: 52px;
+  top: 700px;
+}
+
+html[data-aspect="portrait"] #subs {
+  left: 64px;
+  width: 952px;
+  bottom: 120px;
+  height: 210px;
+}
+html[data-aspect="portrait"] #subs li {
+  left: 0;
+  width: 100%;
+  line-height: 1.28;
+}
+html[data-aspect="portrait"] #subs li::before {
+  left: 0;
+  top: -26px;
+  width: 12px;
+  height: 12px;
+}
+
+html[data-aspect="portrait"] .disclaimer {
+  right: 32px;
+  bottom: 48px;
+  font-size: 9px;
+}
+html[data-aspect="portrait"] #progress { height: 4px; }
+
+/* 版式在竖屏里的收敛：海报不再压暗画面，网格改六栏，分栏取消竖线 */
+html[data-aspect="portrait"][data-layout="poster"] .scene::after {
+  background: transparent;
+}
+html[data-aspect="portrait"][data-layout="poster"] .scene::before { font-size: 440px; bottom: -90px; }
+html[data-aspect="portrait"][data-layout="poster"] .vis-cluster { opacity: 1; transform: scale(0.5625); }
+html[data-aspect="portrait"][data-layout="poster"] .copy .h2 {
+  left: 64px !important;
+  right: 64px;
+  top: 258px !important;
+}
+html[data-aspect="portrait"][data-layout="poster"] .copy .sub {
+  left: 96px !important;
+  right: 96px;
+  top: 388px !important;
+}
+html[data-aspect="portrait"][data-layout="poster"] .s1-lead,
+html[data-aspect="portrait"][data-layout="poster"] .s2-lead {
+  left: 64px;
+  top: 208px;
+  width: 952px;
+  transform: none;
+  text-align: left;
+}
+html[data-aspect="portrait"][data-layout="poster"] .s1-lead .kick,
+html[data-aspect="portrait"][data-layout="poster"] .s2-lead .kick { justify-content: flex-start; }
+html[data-aspect="portrait"][data-layout="poster"] .s1-lead .h2,
+html[data-aspect="portrait"][data-layout="poster"] .s2-lead .h2 { text-align: left; }
+html[data-aspect="portrait"][data-layout="poster"] #subs {
+  left: 50%;
+  width: 952px;
+  transform: translateX(-50%);
+  text-align: center;
+}
+html[data-aspect="portrait"][data-layout="poster"] #subs li { text-align: center; }
+
+html[data-aspect="portrait"][data-layout="grid"] .scene::before {
+  background-position: 64px 0, 0 54px;
+  background-size: calc((100% - 128px) / 6) 100%, 100% 120px;
+}
+html[data-aspect="portrait"][data-layout="grid"] .scene::after { right: 64px; }
+html[data-aspect="portrait"][data-layout="grid"] .s1-lead,
+html[data-aspect="portrait"][data-layout="grid"] .s2-lead { left: 64px; width: 952px; }
+html[data-aspect="portrait"][data-layout="grid"] .copy .kick,
+html[data-aspect="portrait"][data-layout="grid"] .copy .h2,
+html[data-aspect="portrait"][data-layout="grid"] .copy .sub,
+html[data-aspect="portrait"][data-layout="grid"] .copy .s3-sent,
+html[data-aspect="portrait"][data-layout="grid"] .copy .s5-tags { left: 64px !important; }
+html[data-aspect="portrait"][data-layout="grid"] .copy .sub { width: 900px !important; }
+
+html[data-aspect="portrait"][data-layout="split"] .scene::before,
+html[data-aspect="portrait"][data-layout="split"] .scene::after { display: none; }
+html[data-aspect="portrait"][data-layout="split"] .s1-lead,
+html[data-aspect="portrait"][data-layout="split"] .s2-lead { left: 64px; width: 952px; }
+html[data-aspect="portrait"][data-layout="split"] .copy .kick,
+html[data-aspect="portrait"][data-layout="split"] .copy .h2,
+html[data-aspect="portrait"][data-layout="split"] .copy .sub,
+html[data-aspect="portrait"][data-layout="split"] .copy .s3-sent,
+html[data-aspect="portrait"][data-layout="split"] .copy .s5-tags { left: 64px !important; }
+html[data-aspect="portrait"][data-layout="split"] .copy .sub { width: 900px !important; }
+html[data-aspect="portrait"][data-layout="split"] .copy .s3-sent { width: 952px; }
+html[data-aspect="portrait"][data-layout="split"] .vis-cluster {
+  transform: scale(0.5625);
+  transform-origin: top left;
+}
+html[data-aspect="portrait"][data-layout="split"] #subs { left: 64px; width: 952px; }

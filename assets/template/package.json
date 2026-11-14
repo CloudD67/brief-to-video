@@ -1,0 +1,40 @@
+{
+  "name": "brief-to-video-film",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Deterministic HTML timeline film: Puppeteer frame render + FFmpeg encode",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "preview": "node server.js",
+    "music": "node synth-music.js",
+    "media": "node tools/prep-media.js .",
+    "voice": "node tools/voiceover.js .",
+    "voice:list": "node tools/voiceover.js --list-voices",
+    "voice:dry": "node tools/voiceover.js . --dry-run",
+    "render": "node render.js",
+    "render:1080": "node render.js --scale 1",
+    "encode": "node encode.js",
+    "build": "node render.js && node encode.js",
+    "build:1080": "node render.js --scale 1 && node encode.js",
+    "stills": "node render.js --scale 1 --at 1.5,8.6,15.0,25.0,31.0,38.0,47.5,52.8,57.5",
+    "check": "node tools/check-project.js .",
+    "doctor": "node tools/doctor.js .",
+    "qa": "node tools/qa-all.js .",
+    "qa:stills": "node tools/qa-stills.js .",
+    "qa:all": "node tools/qa-all.js .",
+    "qa:layout": "node tools/qa-layout.js .",
+    "qa:timing": "node tools/qa-timing.js .",
+    "styles": "node tools/style-gallery.js .",
+    "grab": "node tools/grab.js",
+    "clean": "rm -rf frames out stills qa",
+    "look": "node tools/pick-look.js",
+    "looks": "node tools/pick-look.js --list",
+    "look:gallery": "node tools/look-gallery.js ."
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "puppeteer-core": "^25.17.0"
+  }
+}

@@ -71,9 +71,9 @@
 - 一帧最多一个素材主体；两张图并列时必须同滤镜、同高度、同基线。
 - 人物面部不要加网点/扫描线；引擎强度在有脸的画面上自动减半（手调 `engineOpts.alpha`）。
 
-## 5. 惊艳度：12 个 look 各自的“那一下”
+## 5. 惊艳度：15 个 look 各自的“那一下”
 
-“有 12 个方向”不等于“每个方向都惊艳”。每个 look 需要一个**签名动作**，写死在一个地方，其它全部让路：
+“有 15 个方向”不等于“每个方向都惊艳”。每个 look 需要一个**签名动作**，写死在一个地方，其它全部让路：
 
 | look | 签名动作 |
 |---|---|
@@ -85,10 +85,13 @@
 | quiet-split | 分栏线是唯一硬边，两侧光影不同步 |
 | swiss-grid | 同心圆弧随进度转动，十字标钉住版面 |
 | swiss-split | 左栏静止，右栏刻度随数据推进 |
+| swiss-poster | 主张压在一角，红色重音块从边线推入，轨道刻度在字后行进 |
 | cinema-editorial | 尘埃穿过斜光束，letterbox 压住上下 |
 | cinema-poster | 极光带在片名后缓慢翻卷 |
+| cinema-split | 左半黑场缓慢呼吸，右半实拍有 Ken Burns，黑边始终在 |
 | tech-split | 流线场从中心向边缘解析，节点逐个点亮 |
 | tech-grid | 扫描带自上而下扫过遥测，数据点列跟随 |
+| tech-editorial | 编辑栏线自上而下推进，扫描带只走一次，代码行像被读出来 |
 
 改一个 look 前先找到它的签名动作；如果改动没有强化它，就不要改。
 
@@ -111,14 +114,32 @@
 'quiet-*':       { engine: 'bokeh',    engineOpts: { alpha: 0.06 ~ 0.12 } },
 'cinema-editorial': { engine: 'dust',  engineOpts: { alpha: 0.85 } },
 'cinema-poster':    { engine: 'aurora',engineOpts: { alpha: 0.9 } },
+'cinema-split':     { engine: 'dust',  engineOpts: { alpha: 0.6 } },
 'tech-split':    { engine: 'flow',     engineOpts: { alpha: 0.9 } },
 'tech-grid':     { engine: 'scan',     engineOpts: { alpha: 0.9 } },
+'tech-editorial': { engine: 'scan',    engineOpts: { alpha: 0.75 } },
 'swiss-*':       { engine: 'orbit',    engineOpts: { alpha: 0.09 ~ 0.13 } },
 ```
 
 canvas 内部分辨率是 `min(0.6, 1400/画布宽)`，1080p 与 4K 渲染同一张底图再放大，所以引擎不会随分辨率变糊，也不会拖慢 4K 逐帧。
 
-## 8. 来源与许可
+## 8. 运动连续性：参考片为什么更丝滑
+
+对一条 30fps 的参考宣传片（61s，真实界面 + 动态字卡）逐帧算帧差：静态帧 7%、帧差均值 2.96、p90 5.99，切点 10 个；切点之间画面一直在动——滚动、光标、推近、粒子。对比一条二次导出的 30fps 版本：静态帧 62%、均值 0.35，肉眼看就是幻灯片。**丝滑不是帧率，是连续性。**
+
+本工程用三层保证：
+
+| 层 | 落点 | 规则 |
+|---|---|---|
+| 全片相机 | `timeline.js` 里 `#scenes` 的 transform | 整片 0→1 平移 ±9px、推近 1.8%；切点不重置方向 |
+| 场景推轨 | 每个场景元素的 transform + `E.smooth` | 交替方向 28px 横移 / 14px 纵移 / 2.2% 推近；起止速度为 0 |
+| 素材运动 | `styles/components.css` 的 `.frame.media img` | Ken Burns 由 `--scene-p` 驱动，暂停也是一帧合法画面 |
+
+硬规则：任何 1 秒窗口内必须有可见变化；不要用“整段静止 + 一次大动画”冒充节奏。`qa:motion` 直接量成片：静态帧 >50% 或均值 <0.4 直接失败；印刷/图形类 look 均值 0.6 以上视为连续，实拍与 tech/cinema look 应到 1.5 以上（模板实测 1% 静态、均值 0.81、无长静止段）。
+
+参考片的另一半优势是**真实界面素材**：终端窗口、光标、时间戳、真实数据，可信度远高于插画。产品/软件类 brief 优先抓自有或已授权页面（`tools/capture-web.js`），再叠加上面的连续运动；真实素材负责可信，连续运动负责丝滑。没有授权就继续用代码绘制，不要搬第三方素材。
+
+## 9. 来源与许可
 
 本工程的引擎绘制、版式规则与动效节奏由以下开源/公开作品**方法启发**，代码为原创实现：
 

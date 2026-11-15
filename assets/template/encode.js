@@ -150,8 +150,11 @@ function detectFrames(opts) {
     throw new Error('帧目录不存在: ' + path.relative(ROOT, opts.framesDir) + '\n请先运行 npm run render');
   }
   const files = fs.readdirSync(opts.framesDir);
-  const png = files.filter(f => /^frame_\d+\.png$/.test(f)).sort();
-  const jpg = files.filter(f => /^frame_\d+\.jpg$/.test(f)).sort();
+  /* 按数字排序：超过 9999 帧后 frame_10000.png 会排在 frame_9999.png 之前，
+     字典序会把 0-9999 误判成“最后一帧”。 */
+  const byNum = (a, b) => parseInt(a.match(/_(\d+)\./)[1], 10) - parseInt(b.match(/_(\d+)\./)[1], 10);
+  const png = files.filter(f => /^frame_\d+\.png$/.test(f)).sort(byNum);
+  const jpg = files.filter(f => /^frame_\d+\.jpg$/.test(f)).sort(byNum);
   const list = png.length >= jpg.length ? png : jpg;
   if (list.length === 0) {
     throw new Error('帧目录中没有 frame_0000.png / frame_0000.jpg：' + path.relative(ROOT, opts.framesDir));

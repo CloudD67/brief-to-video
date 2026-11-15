@@ -7,6 +7,7 @@
  *   node tools/pick-look.js --theme swiss --layout grid "数据平台发布"
  *   node tools/pick-look.js --list
  *   node tools/pick-look.js --json "AI 开发者工具，功能介绍"
+ *   node "$SKILL/assets/template/tools/pick-look.js" --root "$SKILL/assets/template" --json "brief"
  */
 'use strict';
 
@@ -21,18 +22,27 @@ for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === '--theme') opts.theme = args[++i];
   else if (a === '--layout') opts.layout = args[++i];
+  else if (a === '--root') {
+    const dir = args[++i];
+    if (!dir) throw new Error('--root 需要一个目录');
+    opts.root = path.resolve(dir);
+  }
   else if (a === '--list') opts.list = true;
   else if (a === '--json') opts.json = true;
   else if (a === '-h' || a === '--help') {
-    console.log('用法: node tools/pick-look.js [brief…] [--theme <t>] [--layout <l>] [--list] [--json]');
+    console.log('用法: node tools/pick-look.js [brief…] [--root <dir>] [--theme <t>] [--layout <l>] [--list] [--json]');
     process.exit(0);
   } else if (a.startsWith('--')) throw new Error('未知参数: ' + a);
   else words.push(a);
 }
 
-opts.root = path.resolve('.');
-if (words.length === 1 && !opts.list && fs.existsSync(path.join(words[0], 'js', 'config.js'))) {
+const rootPinned = !!opts.root;
+if (!opts.root) opts.root = path.resolve('.');
+if (!rootPinned && words.length === 1 && !opts.list && fs.existsSync(path.join(words[0], 'js', 'config.js'))) {
   opts.root = path.resolve(words.shift());
+}
+if (!fs.existsSync(path.join(opts.root, 'js', 'looks.js'))) {
+  throw new Error('找不到 ' + path.join(opts.root, 'js', 'looks.js') + '；请在工程根目录运行，或用 --root 指向模板/工程目录');
 }
 
 const LOOKS = require(path.join(opts.root, 'js', 'looks.js'));

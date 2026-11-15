@@ -27,7 +27,8 @@
       const wrap = kit.el('div', 's6-wrap');
       const mark = kit.el('div', 's6-mark');
       const name = kit.el('div', 's6-name');
-      const availW = C.width < C.height ? C.width - 128 : 1704;
+      const split = window.FILM_LAYOUT === 'split' && C.width >= C.height;
+      const availW = C.width < C.height ? C.width - 128 : (split ? 624 : 1704);
       name.style.fontSize = Math.min(128, Math.floor(availW / (Math.max(1, C.title.length) * 1.02))) + 'px';
       const nameMask = kit.maskLine(C.title);
       name.appendChild(nameMask.node);

@@ -442,7 +442,10 @@ async function main() {
           const c = window.FILM_CONFIG || {};
           const base = c.posterAt != null ? c.posterAt : 56.4;
           const dur = c.duration || 60;
-          return Math.max(0, Math.min(base * (dur / 60), dur - 0.1));
+          /* posterAt 是相对分镜基准（base）的秒数；MV 的 base 与 duration 相等，
+             不能再按 60s 基准二次缩放，否则封面会飘到片尾。 */
+          const baseDur = c.base || 60;
+          return Math.max(0, Math.min(base * (dur / baseDur), dur - 0.1));
         });
         await page.evaluate(tt => window.pauseAt(tt), posterAt);
         await animFrame(page);

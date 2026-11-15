@@ -240,7 +240,14 @@ html[data-layout="split"] .vis-cluster {
   transform-origin: 0 50%;
 }
 
-html[data-layout="split"] .s0-wrap { left: 96px; width: 632px; text-align: left; }
-html[data-layout="split"] .s6-wrap { left: 96px; width: 632px; }
+html[data-aspect="landscape"][data-layout="split"] .s0-wrap,
+html[data-aspect="landscape"][data-layout="split"] .s6-wrap {
+  left: 96px;
+  width: 632px;
+  align-items: flex-start;
+  text-align: left;
+}
+html[data-layout="split"] .s0-slogan,
+html[data-layout="split"] .s6-slogan { white-space: normal; }
 
 html[data-layout="split"] #subs { left: 96px; width: 900px; }

@@ -49,7 +49,7 @@
 
 加载顺序：`config.js` → `looks.js` → `style.js` → `script.js` → `utils.js` → `easing.js` → `fonts.js` → `media.generated.js` → `media.js` → `scene-kit.js` → `subtitle.js` → `scenes/*.js` → `timeline.js`。
 
-`looks.js` 提供 12 个 look（主题+版式+动效）和自动选择；`style.js` 在 `<head>` 里最早执行：读 `?look=` / `?style=` / `?layout=` 或 config，校验 CSS 是否已加载，写 `document.documentElement.dataset.look/style/layout`，并暴露 `window.FILM_LOOK` / `window.FILM_STYLE` / `window.FILM_LAYOUT`。场景不要自己读 URL 或改 data-*。
+`looks.js` 提供 15 个 look（主题+版式+动效）和推荐排序；`style.js` 在 `<head>` 里最早执行：读 `?look=` / `?style=` / `?layout=` 或 config，校验 CSS 是否已加载，写 `document.documentElement.dataset.look/style/layout`，并暴露 `window.FILM_LOOK` / `window.FILM_STYLE` / `window.FILM_LAYOUT`。场景不要自己读 URL 或改 data-*。
 
 ### `C` — `window.FILM_CONFIG`
 
@@ -231,6 +231,18 @@ npm run check        # 校验键、场景、文件
 - 素材会继承主题的网点/暗角/纸色混合；`styles/components.css` 的 `.frame.media` 已处理 `object-fit: cover` 与缩放，不要在场景里再写图片尺寸。
 - 只支持本地相对路径；`check-project` 会拒绝不存在的文件与非图片（除非已抽帧的视频）。
 
+**真实界面抓帧**（产品/软件类首选，比插画更可信）：
+
+```bash
+node tools/capture-web.js --url http://localhost:5173 --scene s4 --seconds 4 --fps 12 \
+  --scroll 0,900 --cursor "320,420;980,520" --click ".run-button"
+npm run media && npm run check
+```
+
+- 产物是 `assets/media/s4-cap-0001.jpg …` + 清单，按场景 id 自动接入；Ken Burns 与调色照常生效。
+- 滚动/光标用时间函数缓动，预览与逐帧一致；`--click` 在加载后点击一次，适合展开菜单/触发状态。
+- **只抓自有或已明确授权的页面**；不抓竞品/第三方站点，不绕过登录、付费墙或访问限制。
+
 ## 9. 加场景 / 删场景 / 改时长
 
 ### 加一个场景
@@ -260,6 +272,8 @@ npm run check        # 校验键、场景、文件
 - [ ] 换过主题/look 的话，`npm run styles` 或 `npm run look:gallery` 的静帧都看过。
 - [ ] 竖屏工程用 `--vertical` 建，字幕在底部安全区，主体没被 `portrait.css` 挤出。
 - [ ] 用了素材：`npm run media` 后 `npm run check` 通过，Ken Burns 不裁掉主体。
+- [ ] 用了抓帧：页面为自有/已授权，交付说明写明来源；`--scroll/--cursor` 在成片里不抖。
+- [ ] 成片跑过 `npm run qa:motion`：静态帧占比 ≤25%、帧差均值 ≥0.6（实拍/科技 look 应 ≥1.5），没有 ≥1.2s 的静止段。
 - [ ] 用了旁白：`npm run voice:dry` 看溢出，`npm run voice` 后 encode 日志有旁白与闪避。
 - [ ] 任意暂停，标题完整、正文不出框、字幕不压主体、数字已落值。
 - [ ] 场景间页眉/页脚连续，品牌名一致。

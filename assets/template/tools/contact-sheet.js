@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Look 总览图：每个 look 渲一帧，拼成带标签的 contact sheet（JPEG）。
- * 产出可直接放进 README，也可用来快速目检 12 个审美方向。
+ * 产出可直接放进 README，也可用来快速目检全部审美方向。
  *
  *   node tools/contact-sheet.js . --out ../looks-contact-sheet.jpg
  *   node tools/contact-sheet.js . --at 26 --cols 4 --tile 620

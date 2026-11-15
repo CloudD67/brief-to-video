@@ -15,8 +15,8 @@ const SCRIPT = require(path.join(root, 'js', 'script.js'));
 const THEMES = ['letterpress', 'swiss', 'cinema', 'quiet', 'tech'];
 const ENGINES = ['halftone', 'riso', 'bokeh', 'dust', 'aurora', 'flow', 'scan', 'orbit'];
 
-test('look 目录：12 个，id 唯一，主题/版式/动效/引擎全部合法', () => {
-  assert.equal(LOOKS.LOOKS.length, 12);
+test('look 目录：15 个，id 唯一，主题/版式/动效/引擎全部合法', () => {
+  assert.equal(LOOKS.LOOKS.length, 15);
   const ids = new Set();
   const combos = new Set();
   for (const look of LOOKS.LOOKS) {
@@ -145,7 +145,7 @@ test('script：片头/片尾与每场标题等字段无 undefined 洞', () => {
 
 test('listLooks：输出可直接 JSON 序列化，字段齐全', () => {
   const rows = LOOKS.listLooks();
-  assert.equal(rows.length, 12);
+  assert.equal(rows.length, 15);
   const parsed = JSON.parse(JSON.stringify(rows));
   for (const row of parsed) {
     for (const k of ['id', 'name', 'en', 'theme', 'layout', 'motion', 'engine', 'bestFor', 'desc']) {
@@ -162,6 +162,27 @@ test('pick-look CLI：--json 契约稳定，排名长度等于目录长度', () 
   assert.ok(data.brief.includes('AI'));
   assert.equal(data.recommendation.id, 'tech-split');
   assert.equal(data.recommendation.confidence, 'high');
-  assert.equal(data.ranking.length, 12);
-  assert.ok(data.ranking[0].score >= data.ranking[11].score);
+  assert.equal(data.ranking.length, 15);
+  assert.ok(data.ranking[0].score >= data.ranking[data.ranking.length - 1].score);
+});
+
+test('pick-look CLI：--root 允许在工程外调用（建工程前的选择器流程）', () => {
+  const out = execFileSync(process.execPath, [path.join(root, 'tools', 'pick-look.js'), '--root', root, '--json', 'AI 开发者工具，功能介绍'], {
+    cwd: path.dirname(root), encoding: 'utf8'
+  });
+  const data = JSON.parse(out);
+  assert.equal(data.recommendation.id, 'tech-split');
+  assert.equal(data.ranking.length, 15);
+});
+
+test('qa-motion：能识别静止帧比例与长静止段', () => {
+  const { analyze } = require(path.join(root, 'tools', 'qa-motion.js'));
+  const diffs = new Array(60).fill(0.5);
+  for (let i = 10; i < 55; i++) diffs[i] = 0.001;
+  const r = analyze(diffs, 30, { minMean: 1.0, maxStatic: 1.2 });
+  assert.equal(r.frames, 60);
+  assert.ok(r.staticRatio > 0.7, '静止帧比例应被算出');
+  assert.equal(r.longStatic.length, 1, '应报出一个长静止段');
+  assert.ok(r.longStatic[0].seconds >= 1.4, '长静止段时长应约 1.5s');
+  assert.ok(r.findings.some(f => f.level === 'ERROR'), '大量静止应报 ERROR');
 });

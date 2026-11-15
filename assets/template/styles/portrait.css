@@ -186,6 +186,13 @@ html[data-aspect="portrait"][data-layout="grid"] .copy .sub { width: 900px !impo
 
 html[data-aspect="portrait"][data-layout="split"] .scene::before,
 html[data-aspect="portrait"][data-layout="split"] .scene::after { display: none; }
+html[data-aspect="portrait"][data-layout="split"] .s0-wrap {
+  left: 64px;
+  right: 64px;
+  width: auto;
+  align-items: center;
+  text-align: center;
+}
 html[data-aspect="portrait"][data-layout="split"] .s1-lead,
 html[data-aspect="portrait"][data-layout="split"] .s2-lead { left: 64px; width: 952px; }
 html[data-aspect="portrait"][data-layout="split"] .copy .kick,

@@ -115,6 +115,13 @@
     t = U.clamp(t, 0, DURATION);
     current = t;
 
+    /* 全片一层连续运镜：切点不重置方向，任何一帧都有位移与推近。
+       场景内的推轨叠加在这层之上，负责单个镜头的呼吸。 */
+    const gp = U.clamp(t / DURATION, 0, 1);
+    host.style.transform =
+      'translate3d(' + ((gp - 0.5) * 18 * CAM).toFixed(2) + 'px,' +
+      ((gp - 0.5) * 8 * CAM).toFixed(2) + 'px,0) scale(' + (1 + 0.018 * CAM * gp).toFixed(5) + ')';
+
     for (let i = 0; i < scenes.length; i++) {
       const s = scenes[i];
       const active = i === scenes.length - 1 ? t >= s.aStart : (t >= s.aStart && t < s.aEnd);
@@ -129,10 +136,12 @@
       const local = (t - s.aStart) / SCALE;
       const slot = s.aSlot / SCALE;
       const p = U.clamp(local / slot, 0, 1);
+      /* smoothstep：起止速度为 0，切点不会带着满速位移撞进去 */
+      const ep = E.smooth(p);
       const dir = i % 2 ? -1 : 1;
       s.el.style.transform =
-        'translate3d(' + (dir * (0.5 - p) * 16 * CAM).toFixed(2) + 'px,' +
-        ((0.5 - p) * 8 * dir * CAM).toFixed(2) + 'px,0) scale(' + (1.006 + 0.010 * p * CAM).toFixed(4) + ')';
+        'translate3d(' + (dir * (0.5 - ep) * 28 * CAM).toFixed(2) + 'px,' +
+        ((0.5 - ep) * 14 * dir * CAM).toFixed(2) + 'px,0) scale(' + (1 + 0.022 * CAM * ep).toFixed(5) + ')';
       s.el.style.setProperty('--scene-p', p.toFixed(4));
 
       const imgs = s.el.querySelectorAll('.frame.media img');

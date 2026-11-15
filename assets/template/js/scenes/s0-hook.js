@@ -16,7 +16,8 @@
 
       const name = kit.el('div', 's0-name');
       const text = C.title;
-      const availW = C.width < C.height ? C.width - 128 : 1560;
+      const split = window.FILM_LAYOUT === 'split' && C.width >= C.height;
+      const availW = C.width < C.height ? C.width - 128 : (split ? 624 : 1560);
       name.style.fontSize = Math.min(148, Math.floor(availW / (Math.max(1, text.length) * 1.02))) + 'px';
       const tightR = '，。、；：！？';
       const tightL = '「『（《';

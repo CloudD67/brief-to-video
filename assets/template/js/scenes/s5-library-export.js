@@ -153,7 +153,7 @@
       root.appendChild(panel);
 
       this.node = {
-        hdr: hdr, hdrRight: hdrRight, kick: kick, h2: h2m,
+        hdr: hdr, hdrRight: hdrRight, kick: kick, h2: h2m, h2Wrap: h2,
         tagWrap: tags, tags: tagNodes, tiles: tiles, index: index,
         favCount: index.favCount, favBase: index.favBase,
         panel: panel, pk: pk, specRows: specRows, plabel: plabel, pct: pct,
@@ -171,9 +171,11 @@
       n.hdr.style.opacity = String(hp);
       n.hdr.style.transform = 'translate3d(0,' + ((1 - hp) * -10).toFixed(2) + 'px,0)';
 
+      const copyOut = 1 - E.inOutCubic(U.inv(5.85, 6.35, t));
       const kp = E.outCubic(U.inv(0, 0.36, t));
-      n.kick.style.opacity = String(kp);
+      n.kick.style.opacity = String(kp * copyOut);
       n.kick.style.transform = 'translate3d(0,' + ((1 - kp) * 8).toFixed(2) + 'px,0)';
+      n.h2Wrap.style.opacity = String(copyOut);
 
       const h2p = E.outCubic(U.inv(-0.18, 0.46, t));
       n.h2.inner.style.transform = 'translate3d(0,' + ((1 - h2p) * 104).toFixed(2) + '%,0)';

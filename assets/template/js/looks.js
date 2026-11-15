@@ -1,5 +1,5 @@
 /* 视觉目录：look = 主题 + 版式 + 动效气质。
-   不锁死审美：12 个 curated look 覆盖不同题材，auto 按 brief 关键词选择；
+   不锁死审美：15 个 curated look 覆盖不同题材，auto 按 brief 关键词排序；
    ?look= / config.look 可强制，?layout= / ?style= 可单独覆盖。 */
 (function (root, factory) {
   const api = factory();
@@ -112,6 +112,17 @@
       keywords: ['产品', '功能', '发布', 'SaaS', '介绍', '演示', '卖点', '版本', '更新', '工具']
     },
     {
+      id: 'swiss-poster',
+      name: '瑞士 · 宣言',
+      en: 'SWISS / STATEMENT',
+      theme: 'swiss',
+      layout: 'poster',
+      motion: 'precise',
+      bestFor: '观点发布、大会开场、品牌主张',
+      desc: '冷白底上只有一句主张与一个红色重音；不解释，先让人记住。',
+      keywords: ['主张', '观点', '大会', '开场', '品牌', '宣言', '口号', '发布', '演讲', '主题']
+    },
+    {
       id: 'cinema-editorial',
       name: '银幕 · 叙事',
       en: 'CINEMA / NARRATIVE',
@@ -134,6 +145,17 @@
       keywords: ['首映', '预告', '舞台', '悬念', '大片', '剧集', '开场', '片头', '沉浸']
     },
     {
+      id: 'cinema-split',
+      name: '银幕 · 对白',
+      en: 'CINEMA / DIALOGUE',
+      theme: 'cinema',
+      layout: 'split',
+      motion: 'cinematic',
+      bestFor: '人物访谈、品牌故事、真实影像',
+      desc: '一半留给画面，一半留给话；真实素材与判断并排出现。',
+      keywords: ['人物', '访谈', '真实', '记录', '故事', '品牌', '影像', '案例', '客户', '幕后']
+    },
+    {
       id: 'tech-split',
       name: '终端 · 分栏',
       en: 'TECH / SPLIT',
@@ -154,6 +176,17 @@
       bestFor: '数据平台、监控、系统说明',
       desc: '扫描线、网格、编号与状态；像一块正在工作的仪表盘。',
       keywords: ['平台', '数据', '监控', '系统', '仪表盘', '日志', '指标', '运维', '网络', '云']
+    },
+    {
+      id: 'tech-editorial',
+      name: '终端 · 记录',
+      en: 'TECH / LOG',
+      theme: 'tech',
+      layout: 'editorial',
+      motion: 'precise',
+      bestFor: '开源项目、技术发布、开发日志',
+      desc: '深色终端配编辑式栏线，把代码与结果写成一篇可读的记录。',
+      keywords: ['开源', '代码', '开发', '日志', '发布', '技术', '版本', '仓库', 'GitHub', '工程']
     }
   ];
 
@@ -168,10 +201,13 @@
     'quiet-split': { engine: 'bokeh', engineOpts: { alpha: 0.06 } },
     'swiss-grid': { engine: 'orbit', engineOpts: { alpha: 0.13 } },
     'swiss-split': { engine: 'orbit', engineOpts: { alpha: 0.09 } },
+    'swiss-poster': { engine: 'orbit', engineOpts: { alpha: 0.12 } },
     'cinema-editorial': { engine: 'dust', engineOpts: { alpha: 0.85 } },
     'cinema-poster': { engine: 'aurora', engineOpts: { alpha: 0.9 } },
+    'cinema-split': { engine: 'dust', engineOpts: { alpha: 0.6 } },
     'tech-split': { engine: 'flow', engineOpts: { alpha: 0.9 } },
-    'tech-grid': { engine: 'scan', engineOpts: { alpha: 0.9 } }
+    'tech-grid': { engine: 'scan', engineOpts: { alpha: 0.9 } },
+    'tech-editorial': { engine: 'scan', engineOpts: { alpha: 0.75 } }
   };
   LOOKS.forEach(function (l) {
     const fx = ENGINES[l.id] || { engine: 'none' };

@@ -1,0 +1,34 @@
+{
+  "name": "brief-to-video-mv",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pixel-story MV: 480x270 canvas, shot-based timeline, deterministic, Puppeteer + FFmpeg",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "preview": "node server.js",
+    "music": "node synth-chiptune.js",
+    "voice": "node tools/voiceover.js .",
+    "voice:list": "node tools/voiceover.js --list-voices",
+    "voice:dry": "node tools/voiceover.js . --dry-run",
+    "render": "node render.js",
+    "render:1080": "node render.js --scale 1",
+    "encode": "node encode.js",
+    "build": "node render.js --scale 1 && node encode.js",
+    "stills": "node render.js --scale 1 --at 1.2,6.2,11.2,13.7,16.2,21.2,26.2,31.2,36.2,41.2,46.2,53.7,58.7",
+    "test": "node --test test/unit.test.js",
+    "doctor": "node tools/doctor.js .",
+    "qa": "node tools/qa-all.js .",
+    "qa:mv": "node tools/qa-mv.js .",
+    "qa:regress": "node tools/qa-mv.js . --no-shots --json qa/regress.json",
+    "grab": "node tools/grab.js",
+    "clean": "rm -rf frames out stills qa",
+    "render:4k": "node render.js --scale 2",
+    "build:4k": "node render.js --scale 2 && node encode.js"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "puppeteer-core": "^25.17.0"
+  }
+}

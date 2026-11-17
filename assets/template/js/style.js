@@ -37,7 +37,7 @@
     look = auto.look;
   }
 
-  let theme = urlStyle || (look && look.theme) || configStyle || 'letterpress';
+  let theme = urlStyle || configStyle || (look && look.theme) || 'letterpress';
   if (installedThemes.length && installedThemes.indexOf(theme) === -1) {
     console.warn('未知风格 "' + theme + '"，回退到 ' + installedThemes[0] + '；可用：' + installedThemes.join(' / '));
     theme = installedThemes[0];
@@ -49,7 +49,8 @@
     layout = 'editorial';
   }
 
-  const motionId = (look && look.motion) || 'calm';
+  const configMotion = C.motion && C.motion !== 'auto' ? C.motion : null;
+  const motionId = configMotion || (look && look.motion) || 'calm';
   const motion = (LOOKS && LOOKS.MOTION[motionId]) || { id: 'calm', camera: 1, flash: 1 };
   const aspect = (C.width || 1920) < (C.height || 1080) ? 'portrait' : 'landscape';
 

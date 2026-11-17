@@ -12,7 +12,8 @@
     calm: { id: 'calm', name: '克制', camera: 0.55, flash: 0.78 },
     precise: { id: 'precise', name: '精准', camera: 0.82, flash: 0.9 },
     snappy: { id: 'snappy', name: '利落', camera: 1.18, flash: 1.08 },
-    cinematic: { id: 'cinematic', name: '电影感', camera: 0.74, flash: 0.5 }
+    cinematic: { id: 'cinematic', name: '电影感', camera: 0.74, flash: 0.5 },
+    locked: { id: 'locked', name: '锁屏', camera: 0, flash: 0 }
   };
 
   const LAYOUTS = {

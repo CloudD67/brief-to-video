@@ -98,6 +98,7 @@ function measureInPage() {
   for (let i = 0; i < all.length; i++) {
     const el = all[i];
     if (el.closest('#subs')) continue;
+    if (el.closest('[data-decor]')) continue;
     if (el.children.length) continue;
     const text = (el.textContent || '').trim();
     if (!text) continue;

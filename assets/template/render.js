@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * 逐帧截图：Puppeteer 打开 index.html?render=1，调用 window.pauseAt(t) 定位，
- * 截图到 frames/。默认 --scale 2 = 3840x2160（4K）。
+ * 截图到 frames/。默认 --scale 1 = 1920x1080（1080p）；4K 只在用户明确要求时用 --scale 2。
  *
- *   node render.js                 # 4K 全片
- *   node render.js --scale 1       # 1080p 全片
+ *   node render.js                 # 1080p 全片（默认）
+ *   node render.js --scale 2       # 4K 全片（3840x2160）
  *   node render.js --at 1.5,15,33  # 抽帧到 stills/
  *   node render.js --resume        # 断点续渲
  */
@@ -20,7 +20,7 @@ const CONFIG = require('./js/config.js');
 const LOOKS = require('./js/looks.js');
 
 const DEFAULTS = {
-  scale: 2,
+  scale: 1,
   fps: CONFIG.fps || 30,
   from: 0,
   to: CONFIG.duration || 60,
@@ -53,7 +53,7 @@ function usage() {
 
 用法: node render.js [options]
 
-  --scale <n>      设备像素比，2 = ${CONFIG.width * 2}x${CONFIG.height * 2}（默认 2），1 = ${CONFIG.width}x${CONFIG.height}
+  --scale <n>      设备像素比，1 = ${CONFIG.width}x${CONFIG.height}（默认 1），2 = ${CONFIG.width * 2}x${CONFIG.height * 2}（4K，按需）
   --fps <n>        帧率（默认 ${CONFIG.fps}）
   --from <sec>     起始时间（默认 0）
   --to <sec>       结束时间（默认 ${CONFIG.duration}）
@@ -148,7 +148,7 @@ function resolveLook(opts) {
   opts.lookObj = resolved.look;
   opts.lookAuto = resolved.auto;
   opts.effectiveLook = resolved.look.id;
-  opts.effectiveStyle = opts.style || resolved.look.theme;
+  opts.effectiveStyle = opts.style || cfgStyle || resolved.look.theme;
   opts.effectiveLayout = (opts.layout && opts.layout !== 'auto' ? opts.layout : null) || cfgLayout || resolved.look.layout;
   opts.effectiveMotion = resolved.look.motion;
 }

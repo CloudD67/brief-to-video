@@ -1,31 +1,38 @@
 {
   "name": "brief-to-video-mv",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "private": true,
-  "description": "Pixel-story MV: 480x270 canvas, shot-based timeline, deterministic, Puppeteer + FFmpeg",
+  "description": "Paper-cut narrative MV: native 1920x1080 paper layers, shot-based timeline, lyrics, deterministic, Puppeteer + FFmpeg",
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "preview": "node server.js",
-    "music": "node synth-chiptune.js",
+    "music": "node synth-music.js --mood warm --bpm 88",
+    "song": "node tools/song.js",
     "voice": "node tools/voiceover.js .",
     "voice:list": "node tools/voiceover.js --list-voices",
     "voice:dry": "node tools/voiceover.js . --dry-run",
     "render": "node render.js",
     "render:1080": "node render.js --scale 1",
     "encode": "node encode.js",
-    "build": "node render.js --scale 1 && node encode.js",
+    "build": "node render.js --scale 1 && node encode.js && node tools/repair.js .",
     "stills": "node render.js --scale 1 --at 1.2,6.2,11.2,13.7,16.2,21.2,26.2,31.2,36.2,41.2,46.2,53.7,58.7",
     "test": "node --test test/unit.test.js",
     "doctor": "node tools/doctor.js .",
     "qa": "node tools/qa-all.js .",
     "qa:mv": "node tools/qa-mv.js .",
     "qa:regress": "node tools/qa-mv.js . --no-shots --json qa/regress.json",
+    "qa:motion": "node tools/qa-motion.js out/final.mp4 --json qa/motion.json",
+    "qa:variety": "node tools/qa-variety.js out/final.mp4 --json qa/variety.json",
+    "repair": "node tools/repair.js .",
     "grab": "node tools/grab.js",
     "clean": "rm -rf frames out stills qa",
     "render:4k": "node render.js --scale 2",
-    "build:4k": "node render.js --scale 2 && node encode.js"
+    "build:4k": "node render.js --scale 2 && node encode.js && node tools/repair.js .",
+    "check:treatment": "node tools/check-treatment.js .",
+    "gate:pre": "node tools/gate.js . --pre",
+    "gate": "node tools/gate.js . --json qa/gate.json"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",

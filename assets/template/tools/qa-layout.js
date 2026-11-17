@@ -121,7 +121,8 @@ function measureInPage() {
       rect: r,
       font: parseFloat(cs.fontSize),
       clipped,
-      overflowX
+      overflowX,
+      bleed: !!el.closest('[data-bleed]')
     });
   }
 
@@ -202,10 +203,11 @@ async function main() {
 
       for (const leaf of m.leaves) {
         const r = leaf.rect;
-        if (r.l < -1.5 || r.t < -1.5 || r.r > m.stage.w + 1.5 || r.b > m.stage.h + 1.5) {
+        /* 真屏片的面板故意出画；字幕、间幕卡与普通版式文字仍按画框判 */
+        if (!leaf.bleed && (r.l < -1.5 || r.t < -1.5 || r.r > m.stage.w + 1.5 || r.b > m.stage.h + 1.5)) {
           localErr.push('出画 ' + leaf.path + ' 「' + leaf.text + '」');
         }
-        if (leaf.clipped.length) {
+        if (!leaf.bleed && leaf.clipped.length) {
           localErr.push('被裁切 ' + leaf.path + ' 「' + leaf.text + '」 by ' + leaf.clipped[0].by);
         }
         if (leaf.overflowX) {

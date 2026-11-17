@@ -27,7 +27,7 @@ brief
 
 核心流程全部离线：不下载素材、不调用云服务；可选外部输入只有用户素材、用户自有/授权页面的抓帧、本地品牌字体和 macOS 系统语音。
 
-当前为 2.4.0：宣传片 15 个 look、8 个确定性视觉引擎、用户选择器式审美选择、全片连续运镜 + 运动连续性 QA、真实素材抓帧、SSIM 视觉回归与 GitHub Actions CI；MV 为 480×270 像素叙事模板（镜头制分镜、字幕牌、确定性 QA）。第三方设计方法的来源与许可见根目录 `ATTRIBUTIONS.md`；设计 DNA 的可实现版本见 `references/design-dna.md`。
+当前为 3.0.0：**先七问定向，再扩写，最后才分镜**——第 1 问用选择器定类型（宣传片 / MV），每类各 6 问，答案落进 `direction.json`，建工程时 `--intake` 预填进 `treatment.md` 方向锁，写稿不得与之矛盾（见 `intake.md`）；**扩写先于分镜，但宣传片与 MV 写两套稿**——宣传片按 `brief-expansion.md` 写 `treatment.md`（方向锁/世界/人物/序列/≥30 候选镜/≥4 色域，不设字数），MV 按 `mv-craft.md` §0 写更厚的 `treatment.md`（方向锁/背景/人物与关系/母题/故事弧/歌词段/≥32 候选镜删到 20–28/mood ≥3 档，不设字数），两种内容不互换；宣传片默认**空白起步**、每支片现场写（`--demo` 才复制七场示例工程）。硬件/实体产品走**世界语法**（`hardware-promo-grammar.md`：多空间、多色域、屏幕 ≤30%，`js/product-kit.js` 提供真实空间里的电脑/桌面道具），软件/AI/平台类产品片走**真屏语法**（全出血真实界面 + `screen-kit` 零件库 + 间幕卡/胶囊字幕时序 + 桌面拼贴结尾，见 `product-film-grammar.md`）。规则不再只写在文档里：`check-treatment.js` 查 treatment 结构配额，`check-project.js` 查 `config.grammar` / `config.shots` 分镜契约（空间数、屏幕占比、微距/人迹、相邻镜重复），MV `test/unit.test.js` 查 20–28 镜/2–3 秒/四段歌词/mood 分布，`tools/gate.js` 把它们串成交付门禁（`--pre` 写作门禁、全门禁再叠 `repair --strict`）。15 个 look、8 个确定性视觉引擎、用户选择器式审美选择、全片连续运镜、运动连续性 + 色彩分布 QA、真实素材抓帧、SSIM 视觉回归、交付前自检修复（`npm run repair`）与 GitHub Actions CI；MV 为原生 1920×1080 层叠剪纸叙事模板（纸层场景、镜头制分镜、画布底部歌词、歌曲/歌词接入、确定性 QA + 同款 repair，默认 1080p、4K 矢量重画）。第三方设计方法的来源与许可见根目录 `ATTRIBUTIONS.md`；设计 DNA 的可实现版本见 `references/design-dna.md`。
 
 ## 2. 环境要求
 
@@ -71,12 +71,14 @@ my-film/
 │   ├── easing.js           E：缓动函数（smooth/outCubic/inOutCubic/outExpo/backOut）
 │   ├── fonts.js            可选品牌字体加载
 │   ├── scene-kit.js        kit：页眉/插画/遮罩/规格表/素材缩略图
+│   ├── product-kit.js      硬件产品套件：三层空间/窗光/浮尘/铝壳键帽/开合光扫
+│   ├── screen-kit.js       真屏零件库：窗口/终端/看板/卡片/间幕卡/拼贴
 │   ├── engines.js          8 个 Canvas 视觉引擎（种子 PRNG + 时间函数）
 │   ├── subtitle.js         烧录字幕轨（tcFps 可配）
 │   ├── timeline.js         场景调度、cue 解析、播放、seek、素材序列
 │   ├── media.js            素材清单合并/预载、场景级轮换
 │   ├── media.generated.js  视频抽帧清单（prep-media 生成物，默认空）
-│   └── scenes/s0…s6.js     七个场景
+│   └── scenes/s0.js        空白起步占位场景；故事与分镜写完后按场拆成 scenes/*.js（--demo 才有 s0…s6 七场示例）
 ├── styles/
 │   ├── tokens.css          语义令牌（默认 = letterpress）
 │   ├── themes/             5 个主题：letterpress/swiss/cinema/quiet/tech
@@ -85,10 +87,13 @@ my-film/
 │   ├── layouts.css         4 个版式骨架（editorial/poster/grid/split）
 │   ├── portrait.css        9:16 重排
 │   ├── engines.css         引擎层混合与素材调色
+│   ├── product.css         硬件产品套件（空间/材质/屏幕/道具）
 │   └── scenes.css          各场景专用布局
 ├── tools/
 │   ├── doctor.js           环境体检（Node/依赖/Chrome/ffmpeg/磁盘/主题）
-│   ├── check-project.js    静态检查（look/版式/主题契约/对比度/剧本/素材）
+│   ├── check-treatment.js  treatment 结构验收（方向锁/空间/序列/候选镜/色域）
+│   ├── check-project.js    静态检查 + config.grammar / config.shots 分镜契约
+│   ├── gate.js             写作门禁（--pre）与交付门禁（叠 repair --strict）
 │   ├── pick-look.js        按 brief 排序推荐 look（--list/--json/--root）
 │   ├── look-gallery.js     15 个 look × N 帧样片墙
 │   ├── contact-sheet.js    带标签的 15-look 总览图
@@ -146,44 +151,57 @@ my-film/
 ### 5.1 建工程
 
 ```bash
+# 七问答案先写进 direction.json（见 references/intake.md）
 node "$HOME/.qoder/skills/brief-to-video/scripts/new-film.js" ./my-film \
-  --title "北岸咖啡" --brief "咖啡店，日常温暖，生活方式" \
+  --intake direction.json \
+  --title "北岸咖啡" \
   --brand "NORTH BANK" \
   --brand-sub "城市烘焙 / SINCE 2019" \
-  --slogan "把清晨，烘进一杯里" \
-  --duration 60
+  --slogan "把清晨，烘进一杯里"
 
 node "$HOME/.qoder/skills/brief-to-video/scripts/new-film.js" ./vertical \
-  --title "山野来信" --vertical --brief "民宿，自然疗愈"
+  --intake direction-vertical.json --title "山野来信"
 
 node "$HOME/.qoder/skills/brief-to-video/scripts/new-film.js" ./launch \
-  --title "2.0 发布" --look swiss-split
+  --intake direction-launch.json --title "2.0 发布"
+
+# 只用于研究契约：复制老的七场编辑排版示例
+node "$HOME/.qoder/skills/brief-to-video/scripts/new-film.js" ./demo \
+  --intake direction-demo.json --demo --title "七场示例"
+
+# MV：固定 60s 分镜，工程里会生成 MV 专用的 treatment.md
+node "$HOME/.qoder/skills/brief-to-video/scripts/new-film.js" ./my-mv \
+  --intake direction-mv.json --title "把灯留着" --brand TIDE HARBOR
 ```
 
 | 参数 | 默认 | 说明 |
 |---|---|---|
 | `<target-dir>` | 必填 | 目标目录 |
-| `--brief` | 空 | 一句话需求；auto 选 look 的输入 |
-| `--look` | auto | 15 个 look id；用户选定后传入，`auto` 仅兜底 |
+| `--intake` | 必填 | 七问答案 JSON；非终端缺失会报错。见 `references/intake.md` |
+| `--intake-template` | — | `promo` / `mv`：打印空白骨架后退出 |
+| `--genre` | 从 intake 读 | `promo` / `mv`；与 intake 冲突会报错。TTY 无 intake 时询问 |
+| `--demo` | 否 | 仅 promo：复制七场编辑排版示例（`assets/demo-editorial`），不是默认骨架 |
+| `--brief` | 从七问拼 | 一句话需求；auto 选 look 的输入 |
+| `--look` | 从 intake 读 | 15 个 look id；七问第 5 问选定，`auto` 仅在用户授权时 |
 | `--layout` | 跟随 look | 强制 `editorial` / `poster` / `grid` / `split` |
 | `--style` | 跟随 look | 强制 `letterpress` / `swiss` / `cinema` / `quiet` / `tech` |
-| `--vertical` | 横屏 | 竖屏 9:16（= `--size 1080x1920`） |
+| `--vertical` | 从 intake 读 | 竖屏 9:16（= `--size 1080x1920`）；与 intake `format` 冲突会报错 |
 | `--title` | 模板片名 | 同时改 config 与 `<title>` |
 | `--brand` / `--brand-sub` | 模板 | 页眉 |
 | `--slogan` | 模板 | 片尾 |
-| `--duration` | 60 | 场景/字幕按 60s 基准自动缩放 |
-| `--width` / `--height` | 1920 / 1080 | 画幅；只接受 1920×1080 / 1080×1920 |
+| `--duration` | 从 intake 读 | 场景/字幕按 60s 基准自动缩放；与 intake `format` 冲突会报错 |
+| `--width` / `--height` | 从 intake 读 | 画幅；只接受 1920×1080 / 1080×1920 |
 | `--poster-at` | duration − 1.7 | 成片中的封面秒数（内部换算为 60s 基准） |
 | `--no-install` | 安装 | 跳过 npm install |
 | `--force` | 否 | 允许写入非空目录（谨慎） |
 
-创建时整目录复制模板，`tools/` 里自带 `doctor.js`、`qa-all.js`、`check-project.js`、`qa-stills.js`、`qa-layout.js`、`qa-timing.js`、`qa-engines.js`、`qa-motion.js`、`qa-regress.js`、`contact-sheet.js`、`grab.js`、`style-gallery.js`、`pick-look.js`、`look-gallery.js`、`voiceover.js`、`prep-media.js`、`capture-web.js`，以及 `test/unit.test.js`。建完会打印选中的 look 及主题/版式/动效/引擎。
+创建时整目录复制模板：promo 默认复制**空白起步**（单个 0–60s 占位场景），`--demo` 才复制七场示例；`tools/` 里自带 `doctor.js`、`check-treatment.js`、`check-project.js`、`gate.js`、`qa-all.js`、`qa-stills.js`、`qa-layout.js`、`qa-timing.js`、`qa-engines.js`、`qa-motion.js`、`qa-regress.js`、`contact-sheet.js`、`grab.js`、`style-gallery.js`、`pick-look.js`、`look-gallery.js`、`voiceover.js`、`prep-media.js`、`capture-web.js`，以及 `test/unit.test.js`。七问答案会写成工程根目录的 `direction.json`，并预填进 `treatment.md` 的方向锁；两种 treatment 的其余骨架（promo：世界/序列/候选镜/色域表；MV：背景/人物与关系/母题/故事弧/歌词段/候选镜/mood 表）仍需写透。建完会打印选中的 look 及主题/版式/动效/引擎（MV 打印剪纸叙事与分辨率），并提示先写 treatment 再写分镜。
 
 ### 5.2 渲染 `render.js`
 
 ```bash
-node render.js                       # 默认 --scale 2 → 3840×2160 全片
-node render.js --scale 1             # 1920×1080 全片
+node render.js                       # 默认 --scale 1 → 1920×1080 全片
+node render.js --scale 2             # 3840×2160 全片（仅用户明确要求 4K 时）
 node render.js --look swiss-grid     # 指定 look（主题+版式+动效）
 node render.js --look auto --brief "咖啡店，日常温暖" --style quiet
 node render.js --layout split        # 只换版式，保留 look 的主题/动效
@@ -354,12 +372,17 @@ npm run media && npm run check
 ```bash
 npm run doctor         # = node tools/doctor.js .（环境体检，渲染前先跑）
 npm test               # = node --test test/unit.test.js（look/config/剧本/CLI）
-npm run check          # = node tools/check-project.js .
+npm run check:treatment # = node tools/check-treatment.js .（treatment 结构）
+npm run check          # = node tools/check-project.js .（含 grammar/shots 分镜契约）
+npm run gate:pre       # = node tools/gate.js . --pre（treatment + check/单测）
+npm run gate           # = node tools/gate.js .（交付门禁：再叠 repair --strict）
 npm run qa             # = node tools/qa-all.js . → check → layout → timing → engines → stills
 npm run qa:layout      # = node tools/qa-layout.js . → qa/layout.json
 npm run qa:timing      # = node tools/qa-timing.js . → qa/timing.json
 npm run qa:engines     # = node tools/qa-engines.js . → qa/engines.json
 npm run qa:motion      # = node tools/qa-motion.js out/final.mp4 → qa/motion.json
+npm run qa:variety     # = node tools/qa-variety.js out/final.mp4 → qa/variety.json
+npm run repair         # = node tools/repair.js . → qa/repair.json + qa/repair/stills/
 npm run qa:regress     # = node tools/qa-regress.js . → SSIM 对比 qa/baseline/
 npm run qa:stills      # = node tools/qa-stills.js . → qa/stills/
 npm run styles         # = node tools/style-gallery.js .
@@ -386,6 +409,12 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0
 
 `qa-motion.js` 用 ffmpeg 逐帧帧差（`tblend=all_mode=difference` + `signalstats`）统计静态帧占比、均值/p50/p90、最长静止段与切点。静态帧 >50% 或均值 <0.4 报错，>25% 或 <0.6 警告，静止段 ≥1.2s 警告；报告写 `qa/motion.json`。它只量运动量，不判断运动是否好看；参考片（30fps）约 7% 静态、均值 2.96，模板实测 1% 静态、均值 0.81、无长静止段（印刷图形天然低于实拍；实拍/科技 look 应到 1.5 以上）。
 
+`qa-variety.js` 每秒抽一帧压到 32×18，转 HSV 后按 12 个色相加中性色归档，输出色域时间线、主色域占比、色域数（≥8% 占比）、明暗跨度与饱和度中位，报告写 `qa/variety.json`。主色域 >60%、色域 <3、明暗跨度 <0.10、饱和度中位 <0.10 会警告——这是「画面单一、颜色单一」的机器判据。
+
+`repair.js` 是交付前自检闸门：新鲜度（源文件/配乐 vs 成片 mtime）→ 容器（时长/分辨率/帧率/音轨）→ 危险时刻抽帧（切点前后、收尾、封面）→ 近空帧与声明时刻触边探针 → 聚合 `qa-motion` / `qa-variety` → 8 项人工清单；报告写 `qa/repair.json`，退出码 errors>0 为 1。MV 版从 `js/film.js` 的 `shots` 采样，清单换成歌词安全区/纸层/主动作/硬切。修完按 `references/repair-loop.md` 循环到 `ok: true`。
+
+`gate.js` 把三件事串成门禁：`check-treatment.js` → `check-project.js`（或 MV `test/unit.test.js`）→ `repair.js --strict`。`--pre` 只跑前两环，用于开渲前；全门禁用于交付前，报告写 `qa/gate.json`，任一环失败退出码为 1。`repair --strict` 会把 quantity/variety 的 WARN 也当失败，所以“警告都看过”不再靠自觉。
+
 `qa-regress.js` 用 FFmpeg SSIM 对比 15 个 look × 2 个时刻（2.4s / 7.6s）与 `qa/baseline/` 基线，低于 0.985 判为回归，diff 图写 `qa/regress-diff/`。首次或有意改版后跑 `--update` 重建基线；基线只存在本地，不入库。静态检查、引擎体检、回归三件套一起，才能在改主题/引擎/版式后知道有没有弄坏别处。
 
 `contact-sheet.js` 对 15 个 look 各出一帧（默认 `0.48 × duration`），拼成带 look id、主题/版式/引擎标签的总览图，默认写 `qa/contact-sheet.jpg`；`--at` / `--cols` / `--tile` / `--out` 可调。用于交付前目检全部方向，或给客户做风格提案。
@@ -397,6 +426,7 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0
 `check-project.js` 检查：
 
 - config 字段合法、宽高为偶数、`posterAt` 落在 60s 基准内、`look` / `style` / `layout` 指向存在的 look/主题/版式、`tcFps` 合法。
+- 分镜契约：`config.grammar` 为 `screen` / `world` / `auto`；非 auto 时 `config.shots` 必须非空且每镜有 `at/dur/space/frame/subject`；world 查空间数（60s ≥4 / 30s ≥3）、屏幕 ≤30%、微距 ≥2、人迹 ≥2；screen 查屏幕 ≥50%；相邻两镜不得同空间 + 同主体 + 同景别。
 - look 契约：15 个 look 的主题 CSS、版式、动效都存在；keywords 非空；`styles/layouts.css` 含 `html[data-layout="…"]`、`portrait.css` 存在；`brief` 为空时警告（auto 只能靠片名/标语）。
 - 主题契约：`tokens.css` 必须定义全部根令牌（纸/墨/强调/深色/字体/字幕/插画/18 个帧色）；每个非 letterpress 主题必须覆盖 `--paper/--paper-2/--paper-3/--ink/--ink-2/--mute/--faint/--accent/--dark/--on-dark`；必须有 `html[data-style="<name>"]` 选择器；CSS 花括号必须平衡；只覆盖部分帧色会警告。
 - WCAG 对比度（每个主题按继承后的有效色计算）：`--ink/--paper ≥ 10`、`--ink-2/--paper-2 ≥ 7`、`--sub-color/--paper ≥ 7`、`--on-dark/--dark ≥ 10`、`--accent/--paper ≥ 3`、`--mute/--paper ≥ 4.5`；不足直接报错。
@@ -491,28 +521,36 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0
 
 ## 8. 交付规格
 
-默认交付：
+默认交付（1080p；只有用户这次明确要 4K 才交 3840×2160）：
 
-- `out/final.mp4`：H.264 High、yuv420p、bt709、30fps、1920×1080 / 1080×1920 / 3840×2160、AAC 192k 48kHz 立体声、faststart。
+- `out/final.mp4`：H.264 High、yuv420p、bt709、30fps、1920×1080 / 1080×1920（4K 按需 3840×2160）、AAC 192k 48kHz 立体声、faststart。
 - `out/poster.png`：与成片同分辨率的封面帧。
-- `qa/`：切点/中点/收尾抽帧 + `layout.json` / `timing.json` / `motion.json`，供快速复核；多 look 提案时附 `qa/looks/`。
+- `qa/`：切点/中点/收尾抽帧 + `layout.json` / `timing.json` / `motion.json` / `variety.json` / `repair.json`，供快速复核；多 look 提案时附 `qa/looks/`。
+- `treatment.md`：扩写底稿，随工程保留，不设字数、越详细越好。宣传片版是方向锁/世界/序列/候选镜/色域；MV 版是方向锁/背景/人物与关系/母题/故事弧/歌词段/候选镜/mood，两者不能互换。
 - 工程目录：可改文案/换 look/换素材/重渲。
+
+**交付闸门**：`npm run gate` 必须通过（treatment + check/单测 + `repair --strict`，`qa/gate.json` 为绿）；`qa/repair.json` 的 8 项清单逐条确认；repair 抽帧的四角看过；`out/final.mp4` 的 mtime 晚于所有源文件与音频。任一条不满足就不算交付。
 
 交付说明模板：
 
 ```
 成片：/abs/path/out/final.mp4
-规格：3840×2160 · 30fps · 60.00s · H.264 / AAC · 约 78MB
+规格：1920×1080 · 30fps · 60.00s · H.264 / AAC · 约 18MB（4K 按需）
 Look：cinema-editorial（用户选择）· cinema / editorial / cinematic
 画幅：16:9（或 9:16）
 封面：/abs/path/out/poster.png
 工程：/abs/path/my-film（npm run preview 可预览，S 主题 / L 版式 / K look）
+扩写：treatment.md（宣传片：6 空间 / 10 序列 / 30 候选镜 / 4 色域；MV：背景 / 人物与关系 / 母题 / 4 段歌词 / 32 候选镜 → 24 镜 / 3 mood）
 素材：assets/media/（可选）· 抓帧来源与授权：…（可选）
 旁白：assets/voiceover.wav（可选）
 运动：qa:motion 通过（静态帧 1% · 帧差均值 0.8 · 无 ≥1.2s 静止段）
-QA：npm test / check / qa（含引擎）/ qa:regress / qa:motion 全通过；grab 回抽帧已核对
+色彩：qa:variety（主色域 ≤60% · 色域 ≥3 · 明暗跨度 ≥0.10）
+交付自检：npm run gate 通过（gate:pre 写作门禁 + repair --strict 交付门禁；qa/gate.json 各环 ok）
+QA：npm test / check / qa（含引擎）/ qa:regress / qa:motion / qa:variety 全通过；grab 回抽帧已核对（MV 以 test + qa-mv 为准）
 音乐：本地合成；旁白：macOS say；均无外部版权素材
 ```
+
+MV 交付把 `Look` 行换成 `叙事：paper-story · 24 镜 · mood 3 档 · 歌词 16 条`，不写 look/主题/版式；`qa/` 以 qa-mv 报告与逐镜抽帧为准。
 
 ## 9. 边界与限制
 

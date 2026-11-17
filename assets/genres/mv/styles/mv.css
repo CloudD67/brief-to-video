@@ -1,12 +1,12 @@
-/* MV 的唯一宿主样式：舞台只负责把 480×270 的像素画布按整数倍放大。
-   没有主题、版式、纸张、裁切标记；这些属于宣传片语法，不在这里出现。 */
+/* MV 的唯一宿主样式：舞台只负责把 1920×1080 的原生画布适配到窗口。
+   画布按设备像素重画（1080p / 4K），不做位图放大，所以这里没有 pixelated。 */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
   width: 100%;
   height: 100%;
-  background: #05070f;
+  background: #070c16;
   overflow: hidden;
 }
 
@@ -14,7 +14,7 @@ body {
   display: grid;
   place-items: center;
   font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
-  color: #f1e3c4;
+  color: #f3e3c6;
 }
 
 #stage {
@@ -25,7 +25,7 @@ body {
   height: var(--stage-h, 1080px);
   transform: translate(-50%, -50%);
   overflow: hidden;
-  background: #05070f;
+  background: #070c16;
   transform-origin: 50% 50%;
   isolation: isolate;
 }
@@ -46,17 +46,15 @@ html[data-render="1"] *::after {
   display: none;
 }
 
-.pixel-canvas {
+.paper-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   display: block;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
 }
 
-/* 字幕 DOM 只给 QA 读文本与时间，真正上屏的是画布里的字幕牌 */
+/* 字幕 DOM 只给 QA 读文本与时间；真正上屏的是画布里的底部歌词 */
 #subs {
   position: absolute;
   left: 0;
@@ -83,7 +81,7 @@ html[data-render="1"] *::after {
   position: absolute;
   inset: 0;
   z-index: 90;
-  background: #05070f;
+  background: #05080f;
   opacity: 0;
   pointer-events: none;
 }

@@ -17,10 +17,13 @@
     "render": "node render.js",
     "render:1080": "node render.js --scale 1",
     "encode": "node encode.js",
-    "build": "node render.js && node encode.js",
-    "build:1080": "node render.js --scale 1 && node encode.js",
+    "build": "node render.js && node encode.js && node tools/repair.js .",
+    "build:1080": "node render.js --scale 1 && node encode.js && node tools/repair.js .",
     "stills": "node render.js --scale 1 --at 1.5,8.6,15.0,25.0,31.0,38.0,47.5,52.8,57.5",
     "check": "node tools/check-project.js .",
+    "check:treatment": "node tools/check-treatment.js .",
+    "gate:pre": "node tools/gate.js . --pre",
+    "gate": "node tools/gate.js . --json qa/gate.json",
     "test": "node --test test/unit.test.js",
     "doctor": "node tools/doctor.js .",
     "qa": "node tools/qa-all.js .",
@@ -36,7 +39,9 @@
     "clean": "rm -rf frames out stills qa",
     "look": "node tools/pick-look.js",
     "looks": "node tools/pick-look.js --list",
-    "look:gallery": "node tools/look-gallery.js ."
+    "look:gallery": "node tools/look-gallery.js .",
+    "qa:variety": "node tools/qa-variety.js out/final.mp4 --json qa/variety.json",
+    "repair": "node tools/repair.js ."
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",

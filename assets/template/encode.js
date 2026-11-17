@@ -361,6 +361,7 @@ async function main() {
   if (opts.proxy) {
     log(opts, `  1080p     ${path.relative(ROOT, opts.proxyFile)}  ${humanSize(fs.statSync(opts.proxyFile).size)}`);
   }
+  log(opts, '  下一步    交付前跑 npm run repair（新鲜度 / 容器 / 抽帧 / 探针 / 运动 / 色彩）');
   log(opts, '');
 }
 

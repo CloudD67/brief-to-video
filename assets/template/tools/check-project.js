@@ -288,7 +288,7 @@ function checkLooks() {
 function checkCssHealth() {
   const files = ['tokens.css', 'base.css', 'components.css', 'scenes.css', 'layouts.css', 'portrait.css']
     .map(f => path.join(root, 'styles', f)).filter(f => fs.existsSync(f));
-  ['base.css', 'components.css', 'scenes.css', 'layouts.css', 'portrait.css'].forEach(f => {
+  ['base.css', 'components.css', 'scenes.css', 'layouts.css', 'portrait.css', 'screen.css', 'product.css'].forEach(f => {
     if (!fs.existsSync(path.join(root, 'styles', f))) err('缺少 styles/' + f);
   });
   files.forEach(f => {
@@ -317,6 +317,90 @@ function checkConfig() {
   if (posterFinal >= duration) err('封面帧 ' + posterFinal.toFixed(2) + 's 超出片长 ' + duration + 's');
   const cut = scenes.map(s => s.start * (duration / 60)).find(t => Math.abs(t - posterFinal) < 0.35);
   if (cut != null) warn('封面帧 ' + posterFinal.toFixed(2) + 's 贴着切点 ' + cut.toFixed(2) + 's（闪白），换个 posterAt');
+}
+
+/* 分镜契约：grammar 决定屏幕占比、空间数、材质微距与人手痕迹的下限。
+   镜头时间用成片绝对秒数（不是 60s 基准）；旧工程没有 grammar 时跳过。 */
+function checkStoryboard() {
+  if (!config) return { count: 0, grammar: null };
+  const grammar = config.grammar;
+  if (!grammar || grammar === 'auto') return { count: 0, grammar: null };
+  if (grammar !== 'screen' && grammar !== 'world') {
+    err('config.grammar 只能是 screen / world / auto，当前：' + grammar);
+    return { count: 0, grammar: grammar };
+  }
+  const shots = Array.isArray(config.shots) ? config.shots : [];
+  const duration = Number(config.duration) || 60;
+  if (!shots.length) {
+    err('config.shots 为空：' + (grammar === 'world' ? '世界语法' : '真屏语法') + '必须先写分镜表再画场景（见 references/hardware-promo-grammar.md）');
+    return { count: 0, grammar: grammar };
+  }
+  const clean = shots.map((s, i) => ({
+    n: i + 1,
+    at: Number(s.at),
+    dur: Number(s.dur),
+    space: String(s.space || '').trim(),
+    frame: String(s.frame || '').trim().toLowerCase(),
+    subject: String(s.subject || '').trim(),
+    screen: s.screen === true || /^(是|yes|y|✓|√|1|true)$/i.test(String(s.screen || '')),
+    macro: s.macro === true || /macro|微距|细节/.test(String(s.frame || '') + ' ' + String(s.subject || '')),
+    human: s.human === true || /手|人|背影|剪影|肩|指|呼气|袖/.test(String(s.subject || '') + ' ' + String(s.note || ''))
+  }));
+  clean.sort((a, b) => a.at - b.at);
+  let prevEnd = 0;
+  clean.forEach(s => {
+    if (!(s.at >= 0)) err('分镜 ' + s.n + ' 的 at 必须是秒数');
+    if (!(s.dur > 0)) err('分镜 ' + s.n + ' 的 dur 必须大于 0');
+    if (!s.space) err('分镜 ' + s.n + ' 缺 space');
+    if (!s.frame) err('分镜 ' + s.n + ' 缺 frame（wide / mid / close / macro）');
+    if (!s.subject) err('分镜 ' + s.n + ' 缺 subject（这一镜谁/什么在动）');
+    if (s.at < prevEnd - 0.35) err('分镜 ' + s.n + ' 与前一镜重叠超过 0.35s（' + s.at.toFixed(2) + 's < ' + prevEnd.toFixed(2) + 's）');
+    prevEnd = Math.max(prevEnd, s.at + s.dur);
+  });
+  const last = clean[clean.length - 1];
+  if (last && Math.abs(last.at + last.dur - duration) > 0.75) {
+    warn('分镜表结束于 ' + (last.at + last.dur).toFixed(2) + 's，片长 ' + duration + 's；确认没有漏写的镜头');
+  }
+  const spaces = new Set(clean.map(s => s.space).filter(Boolean));
+  const screenShare = clean.filter(s => s.screen).length / clean.length;
+  const macros = clean.filter(s => s.macro).length;
+  const humans = clean.filter(s => s.human).length;
+  if (grammar === 'world') {
+    const minSpaces = duration >= 60 ? 4 : duration >= 30 ? 3 : 2;
+    if (spaces.size < minSpaces) {
+      err('世界语法只有 ' + spaces.size + ' 个空间，下限 ' + minSpaces + '：硬件/实体产品必须活在多个真实空间里，不能一整支片一个背景');
+    }
+    if (screenShare > 0.30 + 1e-9) {
+      err('屏幕镜头占 ' + Math.round(screenShare * 100) + '%，超过 30%：把实体产品拍成屏幕，就是“只演示了功能”');
+    }
+    const minMacro = duration >= 30 ? 2 : 1;
+    if (macros < minMacro) {
+      err('材质微距只有 ' + macros + ' 镜，下限 ' + minMacro + '：键帽、铰链、接口、铝边、织物至少给 2 个细节镜');
+    }
+    const minHuman = duration >= 30 ? 2 : 1;
+    if (humans < minHuman) {
+      err('人手/人迹镜头只有 ' + humans + ' 镜，下限 ' + minHuman + '：加手、背影、剪影或使用痕迹，画面才有体温');
+    }
+  } else {
+    const minScreen = 0.5;
+    if (screenShare < minScreen - 1e-9) {
+      err('真屏语法只有 ' + Math.round(screenShare * 100) + '% 屏幕镜头，下限 50%：软件/平台片的主体就是真实界面');
+    }
+  }
+  for (let i = 1; i < clean.length; i++) {
+    const a = clean[i - 1], b = clean[i];
+    if (a.space === b.space && a.subject === b.subject && a.frame === b.frame) {
+      err('分镜 ' + a.n + ' 与 ' + b.n + ' 同空间、同主体、同景别：会像同一张画面复制，换构图或换动作');
+    }
+  }
+  return {
+    count: clean.length,
+    grammar: grammar,
+    spaces: spaces.size,
+    screenShare: screenShare,
+    macros: macros,
+    humans: humans
+  };
 }
 
 function checkScenes() {
@@ -356,10 +440,11 @@ function cjkLen(text) {
 function normalizeCues() {
   const list = [];
   if (!script) return list;
-  if (!Array.isArray(script.subtitles) || !script.subtitles.length) {
-    err('SCRIPT.subtitles 必须是非空数组');
+  if (!Array.isArray(script.subtitles)) {
+    err('SCRIPT.subtitles 必须是数组（真屏片可以用画面内 caption，写空数组）');
     return list;
   }
+  if (!script.subtitles.length) return list;
   const byId = {};
   scenes.forEach(s => { byId[s.id] = s; });
   script.subtitles.forEach((c, i) => {
@@ -588,7 +673,7 @@ function checkUnits() {
 
 /* 颜色只能住在 tokens.css 和 themes/*.css；场景与组件里写死颜色会让换肤失效 */
 function checkColors() {
-  const cssFiles = ['base.css', 'components.css', 'scenes.css', 'layouts.css', 'portrait.css']
+  const cssFiles = ['base.css', 'components.css', 'scenes.css', 'layouts.css', 'portrait.css', 'screen.css']
     .map(f => path.join(root, 'styles', f)).filter(f => fs.existsSync(f));
   const jsFiles = [];
   (function walk(dir) {
@@ -648,6 +733,7 @@ function main() {
   const cssCount = checkCssHealth();
   scenes = loadScenes();
   checkConfig();
+  const storyboard = checkStoryboard();
   checkScenes();
   checkScript();
   checkScriptRefs();
@@ -680,6 +766,14 @@ function main() {
   console.log('  config   ' + (config ? config.width + 'x' + config.height + ' @' + config.fps + 'fps · ' + config.duration + 's · poster ' + (config.posterAt * (config.duration > 0 ? config.duration / 60 : 1)).toFixed(2) + 's' : 'MISSING'));
   console.log('  scenes   ' + (map || '—'));
   console.log('  script   ' + (script && Array.isArray(script.subtitles) ? cueCount + ' 条字幕 · ' + Object.keys(script).filter(k => k !== 'subtitles').length + ' 段文案' : 'MISSING'));
+  if (storyboard.grammar) {
+    const sbSpaces = storyboard.spaces || 0;
+    const sbScreen = Math.round((storyboard.screenShare || 0) * 100);
+    const sbMacros = storyboard.macros || 0;
+    const sbHumans = storyboard.humans || 0;
+    console.log('  分镜     ' + storyboard.grammar + ' 语法 · ' + storyboard.count + ' 镜 · ' + sbSpaces +
+      ' 个空间 · 屏幕 ' + sbScreen + '% · 微距 ' + sbMacros + ' · 人迹 ' + sbHumans);
+  }
   console.log('  media    ' + (mediaCount ? mediaCount + ' 张素材' : '内置插画（无外部素材）') +
     (fs.existsSync(path.join(root, 'assets', 'voiceover.wav')) ? '  ·  旁白已生成' : ''));
   console.log('  syntax   ' + syntaxCount + ' 个 JS 文件 · ' + cssCount + ' 个 CSS 文件');

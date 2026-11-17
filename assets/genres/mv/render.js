@@ -107,7 +107,7 @@ function parseArgs(argv) {
         throw new Error('未知参数: ' + a + '\nMV 没有 --look / --style / --layout；使用 --help 查看用法');
     }
   }
-  if (!(opts.scale > 0)) throw new Error('--scale 必须大于 0');
+  if (!(opts.scale >= 1 && opts.scale <= 4 && Number.isInteger(opts.scale))) throw new Error('--scale 必须是 1–4 的整数（1 = 1080p，2 = 4K）');
   if (!(opts.fps > 0)) throw new Error('--fps 必须大于 0');
   if (!['png', 'jpg', 'jpeg'].includes(opts.format)) throw new Error('--format 仅支持 png 或 jpg');
   if (opts.format === 'jpeg') opts.format = 'jpg';
@@ -116,8 +116,8 @@ function parseArgs(argv) {
 }
 
 function genreCheck() {
-  if (CONFIG.genre !== 'pixel-story') {
-    throw new Error('config.genre = "' + CONFIG.genre + '"；MV 工程必须是 pixel-story。宣传片请用 --genre promo 新建。');
+  if (CONFIG.genre !== 'paper-story') {
+    throw new Error('config.genre = "' + CONFIG.genre + '"；MV 工程必须是 paper-story。宣传片请用 --genre promo 新建。');
   }
   if ((CONFIG.look && CONFIG.look !== 'none') || (CONFIG.style && CONFIG.style !== 'none') || (CONFIG.layout && CONFIG.layout !== 'none')) {
     throw new Error('MV 配置里出现了 look/style/layout；MV 只有叙事层，不要混入宣传片的 look/主题/版式。');
@@ -263,7 +263,7 @@ async function main() {
     from: opts.from,
     to: opts.to,
     genre: CONFIG.genre,
-    motion: 'pixel',
+    motion: 'paper',
     frames: totalFrames || undefined,
     mode: opts.stills ? 'stills' : 'frames',
     created: new Date().toISOString()
@@ -289,11 +289,11 @@ async function main() {
   log(opts, '  ' + CONFIG.title + ' · MV 帧渲染');
   log(opts, '  ─────────────────────────────────');
   log(opts, `  输出      ${outW}x${outH}  ${ext.toUpperCase()}`);
-  log(opts, `  设备像素比 ${opts.scale}  ·  画布 480x270 × ${(outW / 480).toFixed(0)}`);
+  log(opts, `  设备像素比 ${opts.scale}  ·  原生画布 ${width}×${height}（矢量重画，不做位图放大）`);
   log(opts, opts.stills
     ? `  抽帧      ${opts.at.map(t => t.toFixed(2) + 's').join(', ')}`
     : `  时间      ${opts.from}s → ${opts.to}s  @${opts.fps}fps  (${totalFrames} 帧)`);
-  log(opts, `  叙事      pixel-story（无 look / 主题 / 版式）`);
+  log(opts, `  叙事      paper-story（层叠剪纸 · 固定机位 · 无 look / 主题 / 版式）`);
   log(opts, `  目录      ${path.relative(ROOT, opts.outDir) || '.'}`);
   log(opts, `  浏览器    ${opts.chrome}`);
   log(opts, '');
@@ -342,7 +342,7 @@ async function main() {
       if (msg.type() === 'error') process.stderr.write('  [console] ' + msg.text() + '\n');
     });
 
-    const url = `http://127.0.0.1:${port}/index.html?render=1`;
+    const url = `http://127.0.0.1:${port}/index.html?render=1&scale=${opts.scale}`;
     await page.goto(url, { waitUntil: 'load', timeout: 120000 });
     await page.evaluate(() => window.ready);
     const ready = await page.evaluate(() => window.__READY === true);

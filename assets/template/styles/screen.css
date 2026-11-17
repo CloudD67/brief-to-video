@@ -1,0 +1,429 @@
+/* ============================================================
+   真屏 · 产品界面语言
+   只提供结构：窗口 / 分栏 / 终端 / 看板 / 卡片 / 弹窗 / 任务条 /
+   字幕 / 间幕卡 / 拼贴。皮肤（主色、字体、纸色）跟主题与当次品牌
+   走，不抄任何一支参考片。
+   颜色只来自 tokens.css 的 --scr-* 与主题令牌；本文件不写死颜色。
+   所有动效由 scene 的 seek(local) 驱动，这里不写 animation/transition。
+   ============================================================ */
+
+/* ---------- 舞台 ---------- */
+
+.scr-stage {
+  position: absolute; inset: 0;
+  background: var(--scr-bg);
+  color: var(--scr-text);
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+/* 浅色产品的界面皮肤：只换灰阶，结构不动 */
+.scr-stage.scr-light {
+  --scr-bg: var(--scr-light-bg);
+  --scr-surface: var(--scr-light-surface);
+  --scr-surface-2: var(--scr-light-surface-2);
+  --scr-surface-3: var(--scr-light-surface-3);
+  --scr-line: var(--scr-light-line);
+  --scr-line-2: var(--scr-light-line-2);
+  --scr-text: var(--scr-light-text);
+  --scr-text-2: var(--scr-light-text-2);
+  --scr-text-3: var(--scr-light-text-3);
+  --scr-scrim: var(--scr-light-scrim);
+}
+
+.scr-vig {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(125% 95% at 50% 38%, transparent 52%, var(--scr-bg) 100%);
+  opacity: 0.9;
+}
+
+.scr-wash {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, var(--scr-surface-2), transparent 34%);
+  opacity: 0.5;
+}
+
+/* 弹窗背后压暗；由 dim().seek(local) 推透明度 */
+.scr-dim {
+  position: absolute; inset: 0; pointer-events: none;
+  background: var(--scr-scrim);
+  opacity: 0;
+}
+
+/* ---------- 窗口 / 面板 ---------- */
+
+.scr-win {
+  position: absolute;
+  display: flex; flex-direction: column;
+  background: var(--scr-surface);
+  border: 1px solid var(--scr-line);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--scr-shadow-win);
+}
+
+.scr-win-bar {
+  flex: none;
+  display: flex; align-items: center; gap: 12px;
+  height: 58px; padding: 0 16px 0 18px;
+  background: var(--scr-surface-2);
+  border-bottom: 1px solid var(--scr-line);
+}
+
+.scr-win-body { flex: 1 1 auto; min-height: 0; position: relative; }
+
+.scr-win-title {
+  font-size: 24px; line-height: 1; font-weight: 500;
+  color: var(--scr-text); white-space: nowrap;
+}
+
+.scr-win-sub {
+  font-size: 22px; line-height: 1; color: var(--scr-text-3); white-space: nowrap;
+}
+
+.scr-win-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+.scr-btn {
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--scr-line);
+  border-radius: 8px;
+  color: var(--scr-text-3);
+  font-size: 17px; line-height: 1;
+}
+
+.scr-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--scr-accent);
+  flex: none;
+}
+.scr-dot.ok { background: var(--scr-ok); }
+.scr-dot.warm { background: var(--scr-warn); }
+.scr-dot.off { background: var(--scr-text-3); }
+
+.scr-live {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 21px; color: var(--scr-text-2);
+  white-space: nowrap;
+}
+
+.scr-icon {
+  width: 34px; height: 34px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 9px;
+  background: var(--scr-surface-3);
+  font-family: var(--font-mono);
+  font-size: 16px; font-weight: 600; color: var(--scr-text);
+}
+.scr-icon.accent { background: var(--scr-accent); color: var(--scr-accent-ink); }
+
+/* ---------- 分栏 / 栏线 ---------- */
+
+.scr-split { position: absolute; inset: 0; display: flex; }
+.scr-col { position: relative; min-width: 0; display: flex; flex-direction: column; }
+.scr-divider { width: 1px; flex: none; background: var(--scr-line); }
+
+/* ---------- 终端 ---------- */
+
+.scr-term {
+  padding: 18px 22px 22px;
+  font-family: var(--font-mono);
+  font-size: 23px; line-height: 1.66;
+  color: var(--scr-text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.scr-term .ln { position: relative; min-height: 1.66em; padding-left: 26px; }
+.scr-term .ln.cmd { color: var(--scr-text); }
+.scr-term .ln.cmd::before { content: ">"; position: absolute; left: 2px; color: var(--scr-accent); }
+.scr-term .ln.ok { color: var(--scr-ok); }
+.scr-term .ln.ok::before { content: "✓"; position: absolute; left: 0; }
+.scr-term .ln.warn { color: var(--scr-warn); }
+.scr-term .ln.dim { color: var(--scr-text-3); }
+.scr-term .ln.accent { color: var(--scr-accent-2); }
+.scr-term .ln.ask::before { content: "?"; position: absolute; left: 2px; color: var(--scr-warn); }
+.scr-term .ln.none { padding-left: 0; }
+
+.scr-caret {
+  display: inline-block;
+  width: 9px; height: 1.06em;
+  margin-left: 3px; vertical-align: -0.16em;
+  background: var(--scr-text);
+}
+
+.scr-hr { height: 1px; margin: 14px 0; background: var(--scr-line); }
+
+/* ---------- 看板：标签页 / 过滤 / 卡片 ---------- */
+
+.scr-board { position: absolute; inset: 0; display: flex; flex-direction: column; }
+
+.scr-tabs {
+  display: flex; align-items: flex-end; gap: 38px;
+  padding: 0 40px; height: 74px;
+  border-bottom: 1px solid var(--scr-line);
+}
+.scr-tab { position: relative; padding-bottom: 14px; font-size: 25px; color: var(--scr-text-3); }
+.scr-tab.on { color: var(--scr-text); }
+.scr-tab.on::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  background: var(--scr-accent);
+}
+.scr-tab .n {
+  display: inline-block; min-width: 24px; margin-left: 7px; padding: 1px 6px;
+  border-radius: 999px; background: var(--scr-surface-3);
+  font-size: 18px; text-align: center; color: var(--scr-text-2);
+}
+
+.scr-filters { display: flex; align-items: center; gap: 10px; padding: 22px 40px 0; }
+.scr-filter {
+  padding: 7px 14px; border: 1px solid var(--scr-line-2); border-radius: 999px;
+  font-size: 20px; color: var(--scr-text-2); white-space: nowrap;
+}
+.scr-filter.on { background: var(--scr-accent); border-color: var(--scr-accent); color: var(--scr-accent-ink); }
+.scr-filter .n { opacity: 0.7; margin-left: 6px; }
+
+.scr-field {
+  margin-left: 6px; width: 250px; height: 40px;
+  display: flex; align-items: center; padding: 0 14px;
+  border: 1px solid var(--scr-line); border-radius: 8px;
+  font-size: 20px; color: var(--scr-text-3);
+}
+
+.scr-note { margin-left: auto; font-size: 20px; color: var(--scr-text-3); }
+
+.scr-grid {
+  display: grid; gap: 16px;
+  padding: 24px 40px 40px;
+  align-content: start;
+  flex: 1 1 auto; min-height: 0; overflow: hidden;
+}
+
+.scr-card {
+  position: relative;
+  display: flex; flex-direction: column;
+  padding: 18px 18px 14px;
+  background: var(--scr-surface-2);
+  border: 1px solid var(--scr-line);
+  border-radius: 12px;
+}
+
+.scr-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.scr-card-name { font-size: 25px; font-weight: 600; color: var(--scr-text); white-space: nowrap; }
+.scr-card-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+
+.scr-chip {
+  padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--scr-line-2);
+  font-size: 18px; line-height: 1.35; color: var(--scr-text-2);
+  white-space: nowrap;
+}
+.scr-chip.role { color: var(--scr-accent-2); border-color: color-mix(in srgb, var(--scr-accent) 55%, transparent); }
+.scr-chip.soft { color: var(--scr-text-3); }
+
+.scr-card-desc {
+  margin-top: 12px;
+  font-size: 20px; line-height: 1.5; color: var(--scr-text-2);
+}
+.scr-card-foot {
+  margin-top: auto; padding-top: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 18px; color: var(--scr-text-3);
+}
+
+.scr-avatar {
+  width: 44px; height: 44px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  background: var(--scr-surface-3);
+  font-size: 22px; line-height: 1;
+}
+
+/* ---------- 交接弹窗 ---------- */
+
+.scr-dialog {
+  position: absolute;
+  width: 620px;
+  background: var(--scr-surface);
+  border: 1px solid var(--scr-line-2);
+  border-radius: 14px;
+  box-shadow: var(--scr-shadow-win);
+  overflow: hidden;
+}
+.scr-dialog-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 20px 24px 14px;
+}
+.scr-dialog-title { font-size: 26px; font-weight: 600; color: var(--scr-text); }
+.scr-dialog-sub { font-size: 19px; color: var(--scr-text-3); margin-top: 4px; }
+.scr-dialog-body { padding: 4px 24px 18px; }
+.scr-dialog-row {
+  display: flex; gap: 12px; padding: 7px 0;
+  font-size: 20px; line-height: 1.55; color: var(--scr-text-2);
+}
+.scr-dialog-row b { color: var(--scr-text); font-weight: 500; flex: none; }
+.scr-dialog-foot {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 14px 24px 20px;
+  border-top: 1px solid var(--scr-line);
+}
+.scr-dialog-btn {
+  padding: 8px 18px; border-radius: 8px;
+  border: 1px solid var(--scr-line-2);
+  font-size: 20px; color: var(--scr-text-2);
+}
+.scr-dialog-btn.primary {
+  background: var(--scr-accent); border-color: var(--scr-accent); color: var(--scr-accent-ink);
+}
+
+/* ---------- 任务条 ---------- */
+
+.scr-taskbar {
+  position: absolute;
+  display: flex; align-items: center; gap: 18px;
+  height: 58px; padding: 0 20px;
+  background: var(--scr-surface-2);
+  border: 1px solid var(--scr-line);
+  border-radius: 10px;
+  font-size: 21px; color: var(--scr-text);
+  white-space: nowrap;
+}
+.scr-taskbar .meta { color: var(--scr-text-3); font-family: var(--font-mono); font-size: 18px; }
+.scr-taskbar .push { margin-left: auto; }
+
+/* ---------- 对话记录 ---------- */
+
+.scr-chat { padding: 18px 22px; display: flex; flex-direction: column; gap: 15px; }
+
+.scr-msg { display: flex; gap: 12px; align-items: flex-start; }
+.scr-msg .scr-avatar { width: 38px; height: 38px; font-size: 18px; border-radius: 9px; }
+.scr-msg-body { min-width: 0; max-width: 80%; }
+.scr-msg-name { margin-bottom: 5px; font-size: 18px; color: var(--scr-text-3); white-space: nowrap; }
+.scr-bubble {
+  padding: 10px 14px;
+  border: 1px solid var(--scr-line);
+  border-radius: 10px;
+  background: var(--scr-surface-2);
+  font-size: 21px; line-height: 1.5; color: var(--scr-text-2);
+  white-space: pre-wrap; word-break: break-word;
+}
+.scr-msg.me { flex-direction: row-reverse; }
+.scr-msg.me .scr-msg-body { text-align: right; }
+.scr-msg.me .scr-bubble {
+  background: color-mix(in srgb, var(--scr-accent) 14%, var(--scr-surface-2));
+  border-color: color-mix(in srgb, var(--scr-accent) 36%, transparent);
+  color: var(--scr-text);
+  text-align: left;
+}
+
+/* ---------- 底部字幕（画面内，不是字幕轨） ---------- */
+
+.scr-cap {
+  position: absolute; left: 50%; bottom: 62px;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 18px;
+  white-space: nowrap;
+}
+
+.scr-cap-pill {
+  padding: 9px 18px; border-radius: 9px;
+  background: var(--scr-accent); color: var(--scr-accent-ink);
+  font-size: 34px; font-weight: 600; line-height: 1.1;
+  transform-origin: 50% 60%;
+}
+
+.scr-cap-line {
+  font-size: 54px; font-weight: 700; line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: var(--scr-text);
+  text-shadow: var(--scr-shadow-cap);
+}
+
+/* ---------- 间幕卡（纸色标点） ---------- */
+
+.scr-inter {
+  position: absolute; inset: 0;
+  background: var(--paper);
+  color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+.scr-inter-line {
+  display: flex; align-items: baseline; gap: 0.34em;
+  font-size: 104px; font-weight: 700;
+  letter-spacing: 0.012em;
+  white-space: nowrap;
+}
+
+.scr-inter-seg { position: relative; display: inline-block; will-change: opacity; }
+.scr-inter-seg.em { color: var(--accent); }
+
+.scr-inter-rule {
+  position: absolute; left: 0; right: 0; bottom: -0.20em;
+  height: 4px; background: currentColor;
+  transform-origin: 0 50%;
+}
+
+.scr-inter-foot {
+  position: absolute; left: 0; right: 0; bottom: 58px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 19px; letter-spacing: 0.24em; text-indent: 0.24em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+/* ---------- 结尾拼贴 ---------- */
+
+.scr-collage { position: absolute; inset: 0; background: var(--paper); overflow: hidden; }
+.scr-collage-item { position: absolute; will-change: transform; }
+.scr-collage-item .scr-win,
+.scr-collage-item .scr-card,
+.scr-collage-item .scr-taskbar {
+  position: relative; width: 100%; height: 100%;
+  box-shadow: var(--scr-shadow-item);
+}
+.scr-collage-item .scr-taskbar { height: auto; }
+.scr-collage-item .scr-card { border-radius: 10px; }
+
+/* ---------- 光标 / 连线 ---------- */
+
+.scr-cursor {
+  position: absolute; width: 22px; height: 22px; z-index: 5;
+  pointer-events: none;
+}
+.scr-cursor::before {
+  content: ""; position: absolute; inset: 0;
+  background: var(--scr-text);
+  clip-path: polygon(0 0, 0 100%, 30% 74%, 52% 100%, 66% 88%, 42% 64%, 100% 64%);
+}
+.scr-cursor::after {
+  content: ""; position: absolute; inset: -6px;
+  border: 1px solid color-mix(in srgb, var(--scr-accent) 60%, transparent);
+  border-radius: 50%;
+  opacity: 0.55;
+}
+
+.scr-wire { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.scr-wire path { fill: none; stroke: var(--scr-accent); stroke-width: 3; stroke-dasharray: 1 9; stroke-linecap: round; opacity: 0.85; }
+.scr-wire .head { fill: var(--scr-accent); }
+.scr-wire .halo { fill: var(--scr-accent); opacity: 0.22; }
+
+/* ---------- 小工具 ---------- */
+
+.scr-kbd {
+  display: inline-block; padding: 2px 8px; margin: 0 2px;
+  border: 1px solid var(--scr-line-2); border-radius: 5px;
+  font-family: var(--font-mono); font-size: 0.82em; color: var(--scr-text-2);
+}
+
+/* ---------- 真屏场景与编辑版式的作用域 ----------
+   全出血界面场景不使用编辑版式的分栏刻线、竖排标签与页眉页脚； */
+.scene:has(.scr-stage)::before,
+.scene:has(.scr-stage)::after,
+.scene:has(.scr-inter)::before,
+.scene:has(.scr-inter)::after { content: none; display: none; }
+.scene:has(.scr-stage) .hdr,
+.scene:has(.scr-stage) .copy { display: none; }

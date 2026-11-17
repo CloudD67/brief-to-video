@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * MV 浏览器体检：画布、分镜、字幕牌、确定性与切点抽帧。
+ * MV 浏览器体检：原生画布、分镜、歌词、确定性与切点抽帧。
  *
  *   node tools/qa-mv.js .
  *   node tools/qa-mv.js . --no-shots
  *   node tools/qa-mv.js . --scale 2 --json qa/mv.json
  *
  * 与宣传片的 qa-layout / qa-timing / qa-engines 分开：MV 没有 DOM 版式，
- * 只检查 480×270 画布是否在正确时间画出正确内容，且同一时刻两次渲染一致。
+ * 只检查 1920×1080 剪纸画布是否在正确时间画出正确内容、歌词是否按时出现，
+ * 且同一时刻两次渲染逐像素一致。--scale 2 时画布后备 3840×2160（矢量重画）。
  */
 'use strict';
 
@@ -44,7 +45,7 @@ if (!CHROME) {
   console.error('未找到 Chrome。用 --chrome 指定路径，或设置 CHROME_PATH。');
   process.exit(1);
 }
-if (!(opts.scale > 0)) throw new Error('--scale 必须大于 0');
+if (!(opts.scale >= 1 && opts.scale <= 4 && Number.isInteger(opts.scale))) throw new Error('--scale 必须是 1–4 的整数（1 = 1080p，2 = 4K）');
 
 const errors = [];
 const warnings = [];
@@ -52,6 +53,7 @@ const report = {
   ok: false,
   title: CONFIG.title,
   genre: CONFIG.genre,
+  canvas: { w: CONFIG.width * opts.scale, h: CONFIG.height * opts.scale },
   scenes: [],
   checks: {},
   shots: []
@@ -70,10 +72,8 @@ async function seek(page, t) {
 
 async function canvasStats(page) {
   return page.evaluate(() => {
-    const active = Array.from(document.querySelectorAll('.scene'))
-      .filter(el => el.style.display === 'block');
-    const el = active[active.length - 1];
-    const cv = el && el.querySelector('canvas');
+    const list = document.querySelectorAll('.scene canvas');
+    const cv = list[list.length - 1];
     if (!cv) return { ok: false, why: '当前场景没有 canvas' };
     const g = cv.getContext('2d');
     const img = g.getImageData(0, 0, cv.width, cv.height).data;
@@ -105,12 +105,10 @@ async function canvasStats(page) {
       ok: true,
       width: cv.width,
       height: cv.height,
-      smoothing: g.imageSmoothingEnabled,
       colors: colors.size,
       nonBg: +(nonBg / TOTAL).toFixed(3),
       changed: changed,
-      maxd: maxd,
-      data: cv.toDataURL('image/png')
+      maxd: maxd
     };
   });
 }
@@ -149,7 +147,7 @@ async function main() {
       if (msg.type() === 'error') errors.push('控制台错误：' + msg.text());
     });
 
-    await page.goto(`http://127.0.0.1:${port}/index.html?render=1`, { waitUntil: 'load', timeout: 120000 });
+    await page.goto(`http://127.0.0.1:${port}/index.html?render=1&scale=${opts.scale}`, { waitUntil: 'load', timeout: 120000 });
     await page.evaluate(() => window.ready);
     if (!(await page.evaluate(() => window.__READY === true))) {
       throw new Error('页面未就绪（window.__READY 未置位）');
@@ -160,16 +158,20 @@ async function main() {
       dataset: document.documentElement.dataset.genre,
       look: window.FILM_LOOK,
       timeline: window.getTimeline(),
-      qa: window.PIXEL_QA,
+      qa: window.PAPER_QA,
       canvases: Array.from(document.querySelectorAll('.scene canvas')).map(c => ({ w: c.width, h: c.height }))
     }));
 
-    if (meta.genre !== 'pixel-story') errors.push('window.FILM_GENRE 不是 pixel-story：' + meta.genre);
-    if (meta.dataset !== 'pixel-story') errors.push('html[data-genre] 不是 pixel-story：' + meta.dataset);
+    if (meta.genre !== 'paper-story') errors.push('window.FILM_GENRE 不是 paper-story：' + meta.genre);
+    if (meta.dataset !== 'paper-story') errors.push('html[data-genre] 不是 paper-story：' + meta.dataset);
     if (meta.look) errors.push('MV 里出现了 window.FILM_LOOK：' + meta.look + '（宣传片层混进来了）');
-    if (!meta.canvases.length) errors.push('页面里没有像素画布');
+    if (!meta.canvases.length) errors.push('页面里没有剪纸画布');
+    const wantW = CONFIG.width * opts.scale;
+    const wantH = CONFIG.height * opts.scale;
     meta.canvases.forEach((c, i) => {
-      if (c.w !== 480 || c.h !== 270) errors.push('画布 #' + (i + 1) + ' 是 ' + c.w + 'x' + c.h + '，必须是 480x270');
+      if (c.w !== wantW || c.h !== wantH) {
+        errors.push('画布 #' + (i + 1) + ' 是 ' + c.w + 'x' + c.h + '，按 --scale ' + opts.scale + ' 必须是 ' + wantW + 'x' + wantH);
+      }
     });
     report.checks.genre = meta.genre;
     report.checks.canvasCount = meta.canvases.length;
@@ -188,11 +190,14 @@ async function main() {
           errors.push('切点不连续：' + scenes[i - 1].id + ' → ' + scenes[i].id);
         }
       }
+      const last = scenes[scenes.length - 1];
+      if (last.set !== 'end') errors.push('最后一镜必须是片尾卡（set = end），实际是 ' + last.set);
     }
     report.checks.sceneCount = scenes.length;
     report.checks.cueCount = (tl.cues || []).length;
+    report.checks.heroShots = scenes.filter(s => s.hero).length;
 
-    /* 每个镜头 45% 时刻：画布有内容、尺寸正确、无平滑插值 */
+    /* 每个镜头 45% 时刻：画布有内容、尺寸正确、纸感层次足够 */
     for (const s of scenes) {
       const at = s.start + s.dur * 0.45;
       /* 首次绘制会让 Skia 切换抗锯齿路径（±1 色阶），先暖一遍再取基准 */
@@ -208,10 +213,9 @@ async function main() {
       report.scenes.push(entry);
       if (!st.ok) errors.push(s.id + '：' + st.why);
       else {
-        if (st.width !== 480 || st.height !== 270) errors.push(s.id + ' 的画布尺寸不是 480x270');
-        if (st.smoothing !== false) errors.push(s.id + ' 的 canvas 开了平滑插值');
-        if (st.colors < 8) errors.push(s.id + ' 的画面只有 ' + st.colors + ' 种颜色，可能没画出来');
-        if (st.nonBg < 0.12) errors.push(s.id + ' 的画面只有 ' + (st.nonBg * 100).toFixed(0) + '% 非背景像素');
+        if (st.width !== wantW || st.height !== wantH) errors.push(s.id + ' 的画布尺寸不是 ' + wantW + 'x' + wantH);
+        if (st.colors < 24) errors.push(s.id + ' 的画面只有 ' + st.colors + ' 种颜色，可能没画出纸层');
+        if (st.nonBg < 0.12) errors.push(s.id + ' 的画面只有 ' + (st.nonBg * 100).toFixed(0) + '% 有内容');
       }
 
       /* 同一时刻两次渲染必须一致（容忍新画布首次合成的 ±1–2 色阶取整差） */
@@ -239,28 +243,45 @@ async function main() {
       }
     }
 
-    /* 字幕牌：每条字幕中点，plate 上的文字必须与剧本一致 */
+    /* 歌词画在画布底部（成片里的那一行）：每条中点 α ≥ 0.5，文字与剧本一致 */
     const cues = tl.cues || [];
     const cueFail = [];
     for (const c of cues) {
       const mid = (c.start + c.end) / 2;
       await seek(page, mid);
       const plate = await page.evaluate(() => ({
-        text: window.PIXEL_QA.plate.text,
-        alpha: window.PIXEL_QA.plate.alpha
+        text: window.PAPER_QA.lyric.text,
+        alpha: window.PAPER_QA.lyric.alpha
       }));
       if (plate.alpha < 0.5) cueFail.push(c.text + '（alpha ' + plate.alpha.toFixed(2) + '）');
+      else if (plate.text !== c.text) cueFail.push(c.text + '（画面显示「' + plate.text + '」）');
     }
-    if (cueFail.length) errors.push('字幕牌没有按时出现：' + cueFail.join(' / '));
+    if (cueFail.length) errors.push('歌词没有按时出现：' + cueFail.join(' / '));
 
-    /* 片尾卡：最后 2 秒必须已经是完整片尾 */
+    /* 片尾卡：最后 1.2 秒必须已经停在最后一镜上 */
     await seek(page, Math.max(0, CONFIG.duration - 1.2));
-    const endQa = await page.evaluate(() => ({ endCard: window.PIXEL_QA.endCard, scene: window.PIXEL_QA.scene }));
-    if (!endQa.endCard) errors.push('片尾卡没有在最后 1.2s 前完成（PIXEL_QA.endCard = 0）');
-    report.checks.endCard = endQa.endCard;
+    const endQa = await page.evaluate(() => ({
+      shot: document.documentElement.dataset.shot,
+      idx: window.__SHOT_INDEX,
+      endCard: window.PAPER_QA.endCard,
+      colors: (() => {
+        const cv = document.querySelector('.scene canvas');
+        if (!cv) return 0;
+        const g = cv.getContext('2d');
+        const img = g.getImageData(0, 0, cv.width, cv.height).data;
+        const set = new Set();
+        for (let i = 0; i < img.length; i += 64) set.add((img[i] >> 3) + ',' + (img[i + 1] >> 3) + ',' + (img[i + 2] >> 3));
+        return set.size;
+      })()
+    }));
+    if (scenes.length && endQa.idx !== scenes.length - 1) errors.push('最后 1.2s 没有停在片尾卡上（当前镜 #' + endQa.idx + '）');
+    if (!endQa.endCard) errors.push('片尾卡没有在最后 1.2s 前完成（PAPER_QA.endCard = 0）');
+    if (endQa.colors < 24) errors.push('片尾卡画面为空（' + endQa.colors + ' 个色块）');
+    report.checks.endCard = !!endQa.endCard;
 
     if (opts.shots) {
       const dir = path.resolve(ROOT, opts.out, 'mv');
+      fs.mkdirSync(dir, { recursive: true });
       const posterAt = Math.min(CONFIG.duration - 0.05, CONFIG.posterAt * (CONFIG.duration / (CONFIG.base || 60)));
       for (const [name, t] of [['end', CONFIG.duration - 1.2], ['poster', posterAt]]) {
         await seek(page, Math.min(CONFIG.duration - 0.05, Math.max(0, t)));
@@ -280,9 +301,10 @@ async function main() {
 
   console.log('\nqa-mv · ' + CONFIG.title);
   console.log('  ─────────────────────────────────');
-  console.log('  叙事    ' + report.genre + '  ·  ' + report.checks.sceneCount + ' 镜  ·  ' + report.checks.cueCount + ' 条字幕');
+  console.log('  画布    ' + report.canvas.w + '×' + report.canvas.h + '  ·  原生坐标 ' + CONFIG.width + '×' + CONFIG.height + ' × ' + opts.scale);
+  console.log('  叙事    ' + report.genre + '  ·  ' + report.checks.sceneCount + ' 镜  ·  ' + report.checks.cueCount + ' 条歌词  ·  ' + report.checks.heroShots + ' 个主镜头');
   report.scenes.forEach(s => {
-    console.log('  ' + s.id + '  @' + s.at.toFixed(1) + 's  ' + (s.canvas ? s.canvas.colors + ' 色 / ' + Math.round(s.canvas.nonBg * 100) + '% 非背景' : '画布缺失'));
+    console.log('  ' + s.id + '  @' + s.at.toFixed(1) + 's  ' + (s.canvas ? s.canvas.colors + ' 色 / ' + Math.round(s.canvas.nonBg * 100) + '% 有内容' : '画布缺失'));
   });
   console.log('  片尾卡  ' + (report.checks.endCard ? '✓' : '✗'));
   if (opts.shots) console.log('  抽帧    ' + report.shots.length + ' 张 → ' + path.join(opts.out, 'mv'));
@@ -294,7 +316,7 @@ async function main() {
     errors.forEach(e => console.log('  ✗ ' + e));
     console.log('\n未通过：' + errors.length + ' 个错误。');
   } else {
-    console.log('通过：画布、分镜、字幕牌、片尾卡、同刻复现、画面推进。');
+    console.log('通过：画布、分镜、歌词、片尾卡、同刻复现、画面推进。');
   }
 
   const jsonPath = path.resolve(ROOT, opts.json);

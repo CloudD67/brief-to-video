@@ -1,0 +1,156 @@
+/* ============================================================
+   终端青 / TECH TERMINAL
+   参考开发者工具与深色控制台：墨蓝底、青色强调、等宽标签、扫描线、网格。
+   适合：AI/软件产品、数据平台、开发者工具、硬件与前沿科技题材。
+   ============================================================ */
+
+html[data-style="tech"] {
+  --stage-bg: #04070a;
+  --fade-color: #04070a;
+  --flash-color: #9fe8dd;
+
+  --paper: #080d13;
+  --paper-2: #0b1219;
+  --paper-3: #060a0f;
+  --paper-4: #101a24;
+  --paper-hi: #16222e;
+
+  --ink: #dbe8f4;
+  --ink-2: #a9bccd;
+  --mute: #6f869a;
+  --faint: #4d6070;
+
+  --accent: #35e0c8;
+  --accent-2: #6cf0dc;
+  --red-2: #23b8a3;
+
+  --dark: #0b1219;
+  --dark-2: #0e1720;
+  --dark-3: #142230;
+  --edge: #03070a;
+  --on-dark: #dbe8f4;
+  --on-dark-2: #9db0c1;
+  --on-dark-3: #71879a;
+  --on-dark-4: #4a5d6d;
+
+  --hair: color-mix(in srgb, var(--ink) 16%, transparent);
+  --hair-2: color-mix(in srgb, var(--ink) 38%, transparent);
+
+  --font-display: "Hiragino Sans GB", "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --title-weight: 700;
+  --title-track: -0.02em;
+  --name-track: 0.02em;
+  --h1-size: 144px;
+  --h2-size: 90px;
+  --body-size: 30px;
+
+  --sub-font: var(--font-sans);
+  --sub-size: 46px;
+  --sub-weight: 500;
+  --sub-color: #dbe8f4;
+  --sub-track: 0.02em;
+  --sub-marker: var(--accent);
+  --sub-align: left;
+
+  --grain: 0.03;
+  --fiber: 0;
+  --vignette: 22%;
+  --halftone: 0.12;
+  --scanlines: 0.5;
+  --letterbox: 0px;
+
+  --radius: 2px;
+  --shadow-hard: 0 0 0 transparent;
+  --shadow-soft: 0 0 46px color-mix(in srgb, var(--accent) 14%, transparent);
+  --shadow-card: 0 0 38px color-mix(in srgb, var(--accent) 10%, transparent);
+  --shadow-panel: 0 0 70px color-mix(in srgb, var(--accent) 12%, transparent);
+  --inset-shade: rgba(0, 0, 0, 0.5);
+
+  --ill-ink: #dbe8f4;
+  --ill-paper: #0b1219;
+  --warm: #9ff5e8;
+
+  --f1-sky: #12222c; --f1-mid: #0b1822; --f1-gnd: #04090e;
+  --f2-sky: #0f1d26; --f2-mid: #09141d; --f2-gnd: #03070b;
+  --f3-sky: #162934; --f3-mid: #0d1a23; --f3-gnd: #050b10;
+  --f4-sky: #0d1a22; --f4-mid: #08121a; --f4-gnd: #02060a;
+  --f5-sky: #13242d; --f5-mid: #0a1620; --f5-gnd: #04090d;
+  --f6-sky: #101d26; --f6-mid: #0a141c; --f6-gnd: #03080c;
+}
+
+/* 网格底 */
+html[data-style="tech"] .bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(90deg,
+      color-mix(in srgb, var(--ink) 6%, transparent) 0 1px,
+      transparent 1px 120px),
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb, var(--ink) 6%, transparent) 0 1px,
+      transparent 1px 120px);
+  mask-image: radial-gradient(120% 90% at 50% 42%, #000 30%, transparent 100%);
+  pointer-events: none;
+}
+
+html[data-style="tech"] .paper-base {
+  background:
+    radial-gradient(1100px 700px at 50% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 62%),
+    linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 55%, var(--paper-3) 100%);
+}
+
+html[data-style="tech"] .hdr {
+  border-bottom-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+html[data-style="tech"] .hdr .l b {
+  font-family: var(--font-mono);
+  letter-spacing: 0.24em;
+}
+html[data-style="tech"] .hdr .r em { color: var(--accent); }
+
+html[data-style="tech"] .kick {
+  font-family: var(--font-mono);
+  letter-spacing: 0.26em;
+}
+html[data-style="tech"] .kick i { background: var(--accent); }
+
+html[data-style="tech"] #subs li::before {
+  content: "▸";
+  background: none;
+  width: auto;
+  height: auto;
+  left: -34px;
+  top: 8px;
+  color: var(--accent);
+  font: 600 28px/1 var(--font-mono);
+}
+
+html[data-style="tech"] .frame {
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+html[data-style="tech"] .frame::after {
+  background:
+    radial-gradient(70% 58% at var(--lx) var(--ly), color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%),
+    radial-gradient(64% 62% at var(--sx) var(--sy), rgba(0, 0, 0, 0.5), transparent 76%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.34), transparent 38%);
+}
+html[data-style="tech"] .frame .no { color: color-mix(in srgb, var(--accent) 55%, transparent); }
+
+html[data-style="tech"] .tag { font-family: var(--font-mono); border-color: color-mix(in srgb, var(--ink) 26%, transparent); }
+html[data-style="tech"] .tag.on { background: var(--accent); border-color: var(--accent); color: #04120f; }
+html[data-style="tech"] .tag.red { border-color: var(--accent); }
+
+html[data-style="tech"] .sheet,
+html[data-style="tech"] .ink-panel { box-shadow: var(--shadow-card); }
+html[data-style="tech"] .ink-panel { border-color: color-mix(in srgb, var(--accent) 22%, transparent); }
+
+html[data-style="tech"] .s5-panel { border-color: color-mix(in srgb, var(--accent) 26%, transparent); }
+html[data-style="tech"] .s5-panel h3 { font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.04em; }
+
+html[data-style="tech"] .s6-name { font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.02em; }
+html[data-style="tech"] .s6-rule { width: 480px; background: color-mix(in srgb, var(--accent) 45%, transparent); }
+html[data-style="tech"] .s6-slogan { font-family: var(--font-mono); font-weight: 400; font-size: 30px; letter-spacing: 0.18em; }
+
+html[data-style="tech"] .s3-stamp,
+html[data-style="tech"] .s5-seal { border-color: var(--accent); color: var(--accent); }

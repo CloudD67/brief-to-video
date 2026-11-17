@@ -1,0 +1,102 @@
+/* ============================================================
+   瑞士网格 / SWISS GRID
+   参考国际主义平面设计：无衬线大字、硬网格、红黑、零圆角、零阴影。
+   适合：品牌宣言、建筑/制造、极简产品、需要“专业且不 AI”的题材。
+   ============================================================ */
+
+html[data-style="swiss"] {
+  --stage-bg: #d9d6ce;
+  --fade-color: #d9d6ce;
+  --flash-color: #f7f5f0;
+
+  --paper: #f2f0ea;
+  --paper-2: #f7f5f0;
+  --paper-3: #e7e4dc;
+  --paper-4: #d8d4ca;
+  --paper-hi: #ffffff;
+
+  --ink: #111111;
+  --ink-2: #2c2c2c;
+  --mute: #6b6b6b;
+  --faint: #9c9c9c;
+
+  --accent: #e2231a;
+  --accent-2: #ff4438;
+
+  --dark: #141414;
+  --dark-2: #1e1e1e;
+  --dark-3: #2b2b2b;
+  --edge: #0a0a0a;
+  --on-dark: #f2f0ea;
+  --on-dark-2: #c9c9c4;
+  --on-dark-3: #9a9a95;
+  --on-dark-4: #6b6b66;
+
+  --hair: color-mix(in srgb, var(--ink) 16%, transparent);
+  --hair-2: color-mix(in srgb, var(--ink) 55%, transparent);
+
+  --font-display: "Helvetica Neue", "Arial", "PingFang SC", "Noto Sans SC", sans-serif;
+  --title-weight: 700;
+  --title-track: -0.025em;
+  --name-track: -0.03em;
+  --h1-size: 156px;
+  --h2-size: 96px;
+  --body-size: 30px;
+
+  --sub-font: var(--font-sans);
+  --sub-size: 52px;
+  --sub-weight: 700;
+  --sub-track: -0.012em;
+
+  --grain: 0;
+  --fiber: 0;
+  --vignette: 0%;
+  --halftone: 0;
+  --scanlines: 0;
+
+  --radius: 0px;
+  --shadow-hard: 0 0 0 transparent;
+  --shadow-soft: 0 0 0 transparent;
+  --shadow-card: 0 0 0 transparent;
+  --shadow-panel: 0 0 0 transparent;
+
+  --ill-ink: #111111;
+  --ill-paper: #f7f5f0;
+  --warm: #ffffff;
+
+  --f1-sky: #f4f2ec; --f1-mid: #d3cfc4; --f1-gnd: #77726a;
+  --f2-sky: #efece4; --f2-mid: #c6c0b4; --f2-gnd: #59544c;
+  --f3-sky: #f7f5ef; --f3-mid: #dcd7cc; --f3-gnd: #9c968b;
+  --f4-sky: #e8e4da; --f4-mid: #b5aea0; --f4-gnd: #4e4a43;
+  --f5-sky: #f5f2ea; --f5-mid: #d8d2c6; --f5-gnd: #8f887e;
+  --f6-sky: #ece9e1; --f6-mid: #c8c2b6; --f6-gnd: #615c54;
+}
+
+html[data-style="swiss"] .paper-base {
+  background:
+    repeating-linear-gradient(90deg,
+      color-mix(in srgb, var(--ink) 5%, transparent) 0 1px,
+      transparent 1px 160px),
+    linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+}
+
+html[data-style="swiss"] .vignette,
+html[data-style="swiss"] .paper-grain,
+html[data-style="swiss"] .paper-fiber { display: none; }
+
+html[data-style="swiss"] .hdr { border-bottom-width: 2px; }
+html[data-style="swiss"] .hdr .l b { letter-spacing: 0.22em; }
+
+html[data-style="swiss"] .frame { border-color: var(--ink); }
+html[data-style="swiss"] .frame::after {
+  background: linear-gradient(0deg, color-mix(in srgb, var(--ink) 12%, transparent), transparent 30%);
+}
+
+html[data-style="swiss"] .tag.on { color: #ffffff; }
+
+html[data-style="swiss"] #subs li::before {
+  width: 26px; height: 8px; top: 34px;
+}
+
+html[data-style="swiss"] .s5-panel,
+html[data-style="swiss"] .ed { border-width: 2px; }

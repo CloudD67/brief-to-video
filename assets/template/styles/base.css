@@ -175,6 +175,7 @@ html[data-style="tech"] .paper-fiber {
   z-index: 60;
   background: color-mix(in srgb, var(--ink) 8%, transparent);
 }
+html[data-render="1"] #progress { display: none; }
 #progress-fill {
   display: block; height: 100%; width: 0%;
   background: var(--accent);

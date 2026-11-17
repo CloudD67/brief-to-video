@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * MV 一条命令体检：qa-mv（画布 / 字幕牌 / 确定性 / 画面推进）→ 抽帧目检。
+ * MV 一条命令体检：qa-mv（画布 / 歌词 / 确定性 / 画面推进）→ 抽帧目检。
  *
  *   node tools/qa-all.js .
  *   node tools/qa-all.js . --no-qa        # 只抽帧
  *   node tools/qa-all.js . --scale 1 --every 2
  *
  * 抽帧规则：每镜 30% 与 78% 各一张，外加每个镜头的切点前 0.25s，
- * 覆盖「切点是否干净、主体是否被字幕牌压住、70% 后是否只剩残影」。
+ * 覆盖「切点是否干净、主体是否被歌词压住、70% 后是否只剩残影」。
  */
 'use strict';
 

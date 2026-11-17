@@ -96,4 +96,41 @@
   --f4-sky: #e2d3b2; --f4-mid: #a9956f; --f4-gnd: #433a2b;
   --f5-sky: #f6efdd; --f5-mid: #d9cbb0; --f5-gnd: #8d8067;
   --f6-sky: #e8e3d2; --f6-mid: #bfb69c; --f6-gnd: #565043;
+
+  /* ---------- 真屏（产品界面） ----------
+     只有“界面本身的灰阶 + 功能色”住在这里；主色一律跟着主题 --accent 走。
+     参考片的奶油/淡紫是它的品牌皮肤，不是这套语法的默认值。
+     浅色界面用 .scr-stage.scr-light 覆盖这组表面灰阶。 */
+  --scr-bg: #0a0a0c;
+  --scr-surface: #131316;
+  --scr-surface-2: #18181c;
+  --scr-surface-3: #202025;
+  --scr-line: rgba(255, 255, 255, 0.08);
+  --scr-line-2: rgba(255, 255, 255, 0.16);
+  --scr-text: #ececef;
+  --scr-text-2: #a6a6ae;
+  --scr-text-3: #6c6c76;
+  --scr-accent: var(--accent);
+  --scr-accent-2: var(--accent-2);
+  --scr-accent-ink: var(--paper-hi);
+  --scr-ok: #58c98a;
+  --scr-warn: #e8b45a;
+  --scr-scrim: rgba(0, 0, 0, 0.46);
+  --scr-shadow-win: 0 30px 80px rgba(0, 0, 0, 0.45);
+  --scr-shadow-cap: 0 4px 26px rgba(0, 0, 0, 0.55);
+  --scr-shadow-item: 0 22px 46px rgba(0, 0, 0, 0.26);
+
+  /* ---------- 真屏 · 浅色皮肤 ----------
+     同一套结构换灰阶：.scr-stage.scr-light 只重绑 --scr-*，不改布局。
+     主色仍然跟着主题 --accent 走，不在这里写品牌色。 */
+  --scr-light-bg: #f3f3f5;
+  --scr-light-surface: #ffffff;
+  --scr-light-surface-2: #f7f7f9;
+  --scr-light-surface-3: #ececf1;
+  --scr-light-line: rgba(0, 0, 0, 0.09);
+  --scr-light-line-2: rgba(0, 0, 0, 0.18);
+  --scr-light-text: #17171b;
+  --scr-light-text-2: #55555f;
+  --scr-light-text-3: #8b8b96;
+  --scr-light-scrim: rgba(16, 16, 20, 0.30);
 }

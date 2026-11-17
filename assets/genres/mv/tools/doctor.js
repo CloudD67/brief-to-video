@@ -48,27 +48,26 @@ const chrome = process.env.CHROME_PATH || candidates.find(p => fs.existsSync(p))
 row(chrome ? 'ok' : 'error', 'Chrome', chrome || '未找到', '用 CHROME_PATH 指定');
 
 /* 画布 */
-const scale = CONFIG.width / 480;
-if (Math.abs(CONFIG.width / CONFIG.height - 16 / 9) < 0.001 && Number.isInteger(scale)) {
-  row('ok', '画布', '480x270 → ' + CONFIG.width + 'x' + CONFIG.height + '（×' + scale + ' 整数放大）');
+if (CONFIG.width === 1920 && CONFIG.height === 1080) {
+  row('ok', '画布', '原生 1920×1080 · ' + (CONFIG.renderScale === 2 ? '4K 矢量重画' : '1080p 默认'));
 } else {
-  row('error', '画布', CONFIG.width + 'x' + CONFIG.height + ' 不是 480x270 的整数倍 16:9', 'MV 画布必须保持整数倍');
+  row('error', '画布', CONFIG.width + 'x' + CONFIG.height + ' 不是原生 1920×1080', '剪纸场景按 1920×1080 写坐标，分辨率只改 renderScale');
 }
 
 /* 配置 */
-if (CONFIG.genre === 'pixel-story' && CONFIG.look === 'none' && CONFIG.style === 'none' && CONFIG.layout === 'none') {
-  row('ok', '配置', 'pixel-story · ' + CONFIG.duration + 's · ' + CONFIG.fps + 'fps · 无 look/版式');
+if (CONFIG.genre === 'paper-story' && CONFIG.look === 'none' && CONFIG.style === 'none' && CONFIG.layout === 'none') {
+  row('ok', '配置', 'paper-story · ' + CONFIG.duration + 's · ' + CONFIG.fps + 'fps · 无 look/版式');
 } else {
-  row('error', '配置', 'MV 的 look/style/layout 必须为 none，genre 必须为 pixel-story', '宣传片语法混进来了');
+  row('error', '配置', 'MV 的 look/style/layout 必须为 none，genre 必须为 paper-story', '宣传片语法混进来了');
 }
 
 /* 场景与剧本 */
-const sceneDir = path.join(ROOT, 'js', 'scenes');
-const scenes = fs.existsSync(sceneDir) ? fs.readdirSync(sceneDir).filter(f => f.endsWith('.js')) : [];
-row(scenes.length ? 'ok' : 'error', '场景', scenes.length + ' 个文件 · ' + scenes.sort().join(' '));
+const setsSrc = fs.readFileSync(path.join(ROOT, 'js/paper-sets.js'), 'utf8');
+const scenes = Array.from(setsSrc.matchAll(/S\.([a-z][a-z-]*)\s*=\s*function/g), m => m[1]);
+row(scenes.length ? 'ok' : 'error', '场景', scenes.length + ' 个：' + scenes.sort().join(' '));
 const SCRIPT = require(path.join(ROOT, 'js/script.js'));
 const cues = Array.isArray(SCRIPT.subtitles) ? SCRIPT.subtitles.length : 0;
-row(cues ? 'ok' : 'warn', '字幕牌', cues + ' 条');
+row(cues ? 'ok' : 'warn', '歌词', cues + ' 条');
 
 /* 磁盘：4K 按 4MB/帧估算（像素画面压缩率高） */
 if (typeof fs.statfsSync === 'function') {
@@ -86,7 +85,7 @@ if (typeof fs.statfsSync === 'function') {
 
 /* 配乐 */
 const music = path.join(ROOT, 'assets', 'music.wav');
-row(fs.existsSync(music) ? 'ok' : 'info', '配乐', fs.existsSync(music) ? 'assets/music.wav' + (fs.statSync(music).size > 1024 ? '' : '（空文件）') : '未生成（npm run music 可生成 8-bit 配乐）');
+row(fs.existsSync(music) ? 'ok' : 'info', '配乐', fs.existsSync(music) ? 'assets/music.wav' + (fs.statSync(music).size > 1024 ? '' : '（空文件）') : '未生成（npm run music 合成，或用 npm run song 接入用户歌曲）');
 
 /* 语法 */
 const check = spawnSync(process.execPath, ['--check', path.join(ROOT, 'js', 'timeline.js')], { stdio: 'pipe' });

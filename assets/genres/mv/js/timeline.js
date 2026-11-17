@@ -1,14 +1,17 @@
-/* 时间轴：镜头按分镜的绝对时间排列，段落决定溶解或硬切，镜头按需挂载。
-   所有动画只依赖 local 时间，同一时刻多次渲染逐像素一致。 */
+/* 时间轴：一条 1920×1080 原生画布，按镜头硬切。
+   没有溶解、没有推拉摇移；每次 seek 只画当前这一镜，
+   所有动画都是 local 的函数，同一时刻多次渲染逐像素一致。 */
 (function () {
   'use strict';
 
   const C = window.FILM_CONFIG;
   const F = window.FILM_FILM;
   const SCRIPT = window.FILM_SCRIPT || { subtitles: [] };
+  const K = window.PAPER_KIT;
   const DURATION = C.duration;
   const BASE = C.base || 60;
   const SCALE = DURATION / BASE;
+  window.FILM_SCALE = SCALE;
 
   const renderMode = /[?&]render=1(&|$)/.test(location.search);
   document.documentElement.dataset.render = renderMode ? '1' : '0';
@@ -18,57 +21,33 @@
   const subsRoot = document.getElementById('subs');
   const fade = document.getElementById('fade');
 
-  /* 段落 → 入点转场 */
-  const TR = {
-    verse: { t: 'dx', d: 0.55 },
-    chorus: { t: 'hc', d: 0 },
-    bridge: { t: 'dx', d: 0.80 },
-    finale: { t: 'dx', d: 0.45 }
-  };
-  function modeAt(t) {
-    let m = 'verse';
-    for (let i = 0; i < F.sections.length; i++) {
-      if (t >= F.sections[i].at) m = F.sections[i].mode;
-    }
-    return m;
-  }
-
-  const scenes = F.shots.map(function (shot, i) {
+  const scenes = F.shots.map(function (shot) {
     const start = shot.start * SCALE;
     const dur = shot.dur * SCALE;
-    const s = {
+    return {
       id: shot.id,
       start: start,
       end: start + dur,
       dur: dur,
-      shot: shot,
-      el: null,
-      mounted: false,
-      tr: shot.tr ? { t: shot.tr, d: shot.trDur != null ? shot.trDur : 0.5 } : (i === 0 ? { t: 'hc', d: 0 } : TR[modeAt(shot.start)]),
-      mount: function () {
-        if (this.mounted) return;
-        const el = document.createElement('section');
-        el.className = 'scene';
-        el.id = this.id;
-        el.dataset.index = String(i + 1).padStart(3, '0');
-        el.dataset.total = String(scenes.length).padStart(3, '0');
-        el.style.zIndex = String(10 + i);
-        el.style.opacity = '0';
-        host.appendChild(el);
-        this.el = el;
-        this.cv = window.PIXEL_KIT.stage(el);
-        this.g = this.cv.getContext('2d');
-        this.g.imageSmoothingEnabled = false;
-        this.mounted = true;
-      },
-      seek: function (local) {
-        window.PIXEL_SHOT.render(this.g, this.shot, Math.max(0, local), this.dur);
-      }
+      shot: shot
     };
-    return s;
   });
 
-  /* 字幕牌：绝对时间，按镜头渲染时的当前时间查表 */
+  let section = null;
+  let canvas = null;
+  let ctx = null;
+
+  function ensureCanvas() {
+    if (canvas) return;
+    section = document.createElement('section');
+    section.className = 'scene';
+    section.style.display = 'block';
+    host.appendChild(section);
+    canvas = K.stage(section);
+    ctx = K.ctx(canvas);
+  }
+
+  /* 歌词：绝对秒数；画布里按分镜基准的时间查表，所以句子可以跨切点 */
   const CUES = (Array.isArray(SCRIPT.subtitles) ? SCRIPT.subtitles : []).map(function (c) {
     return {
       start: Number(c.start) * SCALE,
@@ -99,46 +78,27 @@
   function seekTo(t) {
     t = U.clamp(t, 0, DURATION);
     current = t;
+    ensureCanvas();
 
     const idx = sceneIndexAt(t);
-    const cur = scenes[idx];
-    const prev = idx > 0 ? scenes[idx - 1] : null;
-    const tr = cur.tr;
-    const inProgress = prev && tr.t === 'dx' && t < cur.start + tr.d;
-
-    for (let i = 0; i < scenes.length; i++) {
-      const s = scenes[i];
-      const active = (i === idx) || (inProgress && i === idx - 1);
-      if (!active) {
-        if (s.el && s.el.style.display !== 'none') s.el.style.display = 'none';
-        continue;
-      }
-      s.mount();
-      s.el.style.display = 'block';
-      let a = 1;
-      if (i === idx && prev && tr.t === 'dx') {
-        a = K01((t - cur.start) / tr.d);
-      } else if (i === idx - 1) {
-        a = 1 - K01((t - cur.start) / tr.d);
-      }
-      s.el.style.opacity = a.toFixed(4);
-      s.seek(t - s.start);
-    }
+    const s = scenes[idx];
+    window.PAPER_SHOT.render(ctx, s.shot, Math.max(0, t - s.start), s.dur);
 
     seekSubs(t);
 
-    const intro = 1 - U.inv(0, 0.45, t);
-    const outro = U.inv(DURATION - 1.0, DURATION, t);
-    fade.style.opacity = String(Math.max(intro * 0.95, outro));
+    const intro = 1 - U.inv(0, 0.5, t);
+    const outro = U.inv(DURATION - 0.9, DURATION, t);
+    fade.style.opacity = String(Math.max(intro * 0.96, outro));
 
-    if (root_progress()) {
+    document.documentElement.dataset.shot = s.id;
+    window.__SHOT_INDEX = idx;
+    window.__T = t;
+
+    if (!renderMode) {
       const p = document.getElementById('progress-fill');
       if (p) p.style.width = ((t / DURATION) * 100).toFixed(3) + '%';
     }
   }
-
-  function K01(x) { return x <= 0 ? 0 : (x >= 1 ? 1 : x * x * (3 - 2 * x)); }
-  function root_progress() { return false; }
 
   function loop() {
     if (!playing) return;
@@ -187,7 +147,6 @@
   }
 
   seekTo(0);
-  scenes[0].mount();
 
   window.seekTo = seekTo;
   window.pauseAt = pauseAt;
@@ -200,17 +159,30 @@
       base: BASE,
       scale: SCALE,
       crossfade: 0,
-      genre: 'pixel-story',
+      genre: C.genre,
+      canvas: {
+        width: C.width,
+        height: C.height,
+        backingW: C.width * K.R,
+        backingH: C.height * K.R,
+        scale: K.R
+      },
       shots: scenes.length,
       scenes: scenes.map(function (s) {
+        const sh = s.shot;
         return {
           id: s.id, start: s.start, end: s.end, dur: s.dur,
-          authoredStart: s.start / SCALE, authoredEnd: s.end / SCALE,
-          tr: s.tr.t, set: s.shot.s
+          authoredStart: sh.start, authoredEnd: sh.start + sh.dur,
+          set: sh.s, mood: sh.mood, frame: sh.frame,
+          hero: !!(sh.who || sh.hands || sh.hero)
         };
       }),
       cues: CUES.map(function (c) {
-        return { start: c.start, end: c.end, text: c.text };
+        return {
+          start: c.start, end: c.end,
+          authoredStart: c.authoredStart, authoredEnd: c.authoredEnd,
+          text: c.text
+        };
       })
     };
   };

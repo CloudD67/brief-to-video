@@ -3,11 +3,11 @@
   'use strict';
 
   const CONFIG = {
-    title: '一句话，一条片',
-    brand: 'FILM',
+    title: '未命名影片',
+    brand: 'STUDIO',
     brandSub: '从一句话到成片 / BRIEF TO FILM',
-    slogan: '从分镜到成片，一次说清',
-    disclaimer: '演示影片 · 画面均由代码绘制',
+    slogan: '故事先于画面',
+    disclaimer: '空白起步 · 先写故事，再写分镜',
 
     width: 1920,
     height: 1080,
@@ -18,13 +18,24 @@
     // auto 会按 brief/title/slogan 关键词选择；?look= 可强制指定
     // 可用：node tools/pick-look.js --list
     look: 'auto',
-    brief: '',
+    brief: '品牌片，编辑排版，先写故事与分镜',
 
-    // 单独覆盖（auto 表示跟随 look）
+    // 单独覆盖（auto 表示跟随 look）；显式写了的层优先于 look
     // style: auto | letterpress | swiss | cinema | quiet | tech
     // layout: auto | editorial | poster | grid | split
     style: 'auto',
     layout: 'auto',
+    // 动效气质：auto 跟随 look；真屏产品片写 'locked'（无全片漂移、切点不闪白）
+    // 可选：calm | precise | snappy | cinematic | locked
+    motion: 'auto',
+
+    // 镜头语法：screen = 软件/AI/平台的真屏语法；world = 硬件/空间/人物的世界语法
+    // auto 由 new-film.js 按七问第 2 问写入；check-project 会按它查屏幕占比与空间数
+    grammar: 'auto',
+
+    // 分镜表契约（写进剧本后再填，check-project 用它查覆盖、屏幕占比与相邻镜差异）
+    // [{ id, at, dur, space, frame, subject, screen?, note? }]
+    shots: [],
 
     // 竖屏：width 1080 / height 1920 即自动启用 portrait 重排
 

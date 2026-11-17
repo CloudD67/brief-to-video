@@ -18,13 +18,13 @@
 (function () {
   'use strict';
   const C = window.FILM_CONFIG;
-  const SC = window.FILM_SCRIPT.s7;   // 这一场的全部可见文案
+  const SC = window.FILM_SCRIPT.s3;   // 这一场的全部可见文案
   const S = window.FILM_SCENES = window.FILM_SCENES || [];
 
   S.push({
-    id: 's7',                 // 唯一，建议 s0…s6
-    start: 60,                 // 60s 基准的全局时间
-    end: 60,                   // 最后一场固定 60；运行时自动缩放到实际片长
+    id: 's3',                 // 唯一；数量与 id 由分镜表决定（s0、s1… 或语义 id）
+    start: 21.5,               // 60s 基准的全局时间
+    end: 33,                   // 最后一场固定写 60；运行时自动缩放到实际片长
     mount: function (root) {
       // 只在这里建 DOM；把需要每帧改的节点缓存到 this.node
     },
@@ -39,6 +39,7 @@
 
 - `id` 唯一；`start < end`；场景按 60s 基准连续，不能有缺口或重叠。
 - 第一个场景 `start = 0`；最后一个场景 `end = 60`（不是 `C.duration`）。
+- 场景数量与顺序来自你自己的故事分镜表，不要求七个；新增/删减场景时同步改 `script.js` 与 `index.html`。
 - 所有可见文字来自 `window.FILM_SCRIPT[id]`；场景文件里只允许生成装饰性时间码、编号、单位。
 - `mount` 只调用一次；`seek` 每秒调用 30 次（4K 渲染时也是），必须轻量。
 - `seek` 不得使用 `Math.random()`、`Date.now()`、`performance.now()`；需要随机用 `U.mulberry32(seed)`。
@@ -65,7 +66,7 @@ const SC = window.FILM_SCRIPT.s3;
 ```
 
 - 字幕统一放在 `FILM_SCRIPT.subtitles`，新写法是**场景内定位**：`{ scene, at, dur, text }`，`at/dur` 是 60s 基准的场景内秒数。`timeline.js` 的 `resolveCues()` 会换算成绝对时间、把跨切点的字幕夹回场景内，并暴露 `window.FILM_CUES`（绝对秒数）供运行时与 QA 使用。旧的 `{ start, end, text }` 仍兼容，但新工程不要再用。
-- 场景文案按 `s0…s6` 分节；新增场景必须同步加一节，`check-project` 会校验。
+- 场景文案按你的场景 id 分节；新增场景必须同步加一节，`check-project` 会校验。
 - `kit.el` / `kit.chars` / `kit.maskLine` 支持 `{duration} {width} {height} {fps}` 占位符，自动从 config 取值；例：`'BRIEF → FILM · {duration} SEC'`。**这些占位符只允许出现在传给 kit 的模板字符串里**，不能留在最终可见文本中。
 
 场景里页眉统一写：
@@ -172,6 +173,44 @@ node.textContent = Math.round(target * p) + ' %';
 
 用绝对定位的 div + 细线 + 小字号 mono 字体搭；动画只改进度条宽度、播放头 `left`、行高亮。不要嵌 iframe 或外部截图。
 
+### 真屏场景（screen-kit）
+
+软件/AI/平台类产品片的场景不写普通版式，整屏交给 `window.screen`（`js/screen-kit.js`）：
+
+```js
+mount(root) {
+  const st = screen.stage();               // 深色；浅色产品用 screen.stage({ light: true })
+  root.appendChild(st);
+  const left = screen.win({ x: -70, y: 0, w: 1020, h: 1080, title: '任务', icon: screen.icon('T', 'accent') });
+  const t = screen.term({ lines: [['cmd', '']] });
+  left.body.appendChild(t);
+  const board = screen.board({ tabs: [...], filters: [...], cols: 4 });
+  const right = screen.win({ x: 950, y: 0, w: 1040, h: 1080 });
+  right.body.appendChild(board);
+  const cap = screen.caption('协作', '两个人，一块屏');
+  st.append(left, right, cap);
+  this.n = { left, right, t, board, cap };
+},
+seek(local) {
+  screen.type(this.n.t.lines[0], 'npm test', screen.inv(local, 0.6, 1.4));
+  screen.reveal(this.n.t.lines.slice(1), local, 2.0, 0.09, 0.28);
+  screen.caret(this.n.t.lines[0], local, local > 3.6);
+  this.n.cap.seek(local, 0.4, 8.6);
+}
+```
+
+契约：
+
+- 组件只由 `seek(local)` 驱动；没有 CSS 动画，不读时钟。
+- 界面字号保持 20–28px；强调用 `caption()` / `intertitle()`，不要放大 UI。
+- 颜色全部来自 `tokens.css` 的 `--scr-*`；主色跟主题 `--accent`。场景里不要写颜色。
+- `win` 的 `x/y/w/h` 允许负值与出画；面板被画框切掉是真实感来源。
+- 深色产品默认皮肤；浅色产品加 `stage({ light: true })`，只换灰阶不改结构。
+- 间幕卡用 `screen.intertitle([{text,accent,underline}])`；结尾用 `screen.collage([...])`。
+- **连线必须给退场时刻**：`screen.wire(...).seek(local, t0, dur, outAt)` 的第 4 参是轨迹开始退场的本地秒数；不给 `outAt` 时路径与线头会一直留在画面上，交接镜头就会把虚线压在新标题上。线头/光晕/路径在 `outAt` 后 0.24s 内一起归零，给下一个可读元素留出干净底。
+- 真屏片 `config.motion = 'locked'`：无全片漂移、无切点闪白。
+- 组件清单、真实感要点与验收见 `product-film-grammar.md` §8；硬件/实体产品不要套这套语法。
+
 ### 节奏预算与收尾
 
 `qa-timing.js` 会在每个场景的 15% / 35% / 50% / 70% / 85% / 95% 采样，按这些规则判：
@@ -247,8 +286,8 @@ npm run media && npm run check
 
 ### 加一个场景
 
-1. 复制一个现有场景文件为 `js/scenes/sX-*.js`，改 `id`、`start`、`end`（60s 基准）与布局。
-2. 在 `js/script.js` 加 `sX` 文案节，并在 `subtitles` 里补该段字幕。
+1. 按分镜表新建 `js/scenes/sX-*.js`（id 与起止来自分镜表），改布局与画面。
+2. 在 `js/script.js` 加对应文案节，并在 `subtitles` 里补该段字幕。
 3. 在 `index.html` 中、`timeline.js` 之前加入 `<script src="js/scenes/sX-*.js"></script>`。
 4. 调整相邻场景的 `end/start`，确保 60s 基准连续无重叠。
 5. `npm run check && npm run qa`（qa = 静态 → 版式 → 节奏 → 抽帧）。

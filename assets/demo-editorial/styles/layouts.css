@@ -1,0 +1,253 @@
+/* ============================================================
+   版式骨架 · LAYOUTS
+   data-layout = editorial | poster | grid | split
+   只改构图，不改场景内部坐标；所有颜色仍来自令牌。
+   ============================================================ */
+
+.vis-cluster,
+.copy { position: absolute; inset: 0; }
+
+/* ---------- 01 编辑 · 默认 ----------
+   非对称左文右图；场景文件自身的位置就是这套骨架。 */
+
+html[data-layout="editorial"] .vis-cluster,
+html[data-layout="editorial"] .copy { position: absolute; }
+
+/* ---------- 02 海报 · POSTER ----------
+   文字居中，画面退成被纸色洗淡的背景，留一个大号场次编号。 */
+
+html[data-layout="poster"] .scene {
+  box-shadow: inset 0 0 0 1px var(--hair-2);
+}
+
+html[data-layout="poster"] .scene::before {
+  content: attr(data-index);
+  position: absolute;
+  left: -26px;
+  bottom: -150px;
+  z-index: 0;
+  font: 900 620px/0.8 var(--font-display);
+  letter-spacing: -0.05em;
+  color: color-mix(in srgb, var(--ink) 6%, transparent);
+  pointer-events: none;
+}
+
+html[data-layout="poster"] .vis-cluster {
+  z-index: 1;
+  opacity: 0.26;
+  transform: scale(1.06);
+  transform-origin: 50% 45%;
+  filter: saturate(0.8);
+}
+
+html[data-layout="poster"] .scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg,
+      var(--paper) 0%,
+      color-mix(in srgb, var(--paper) 80%, transparent) 34%,
+      color-mix(in srgb, var(--paper) 58%, transparent) 68%,
+      color-mix(in srgb, var(--paper) 28%, transparent) 100%);
+}
+
+html[data-layout="poster"] .copy,
+html[data-layout="poster"] .s0-wrap,
+html[data-layout="poster"] .s1-lead,
+html[data-layout="poster"] .s2-lead,
+html[data-layout="poster"] .s6-wrap { z-index: 30; }
+
+html[data-layout="poster"] .s1-lead,
+html[data-layout="poster"] .s2-lead {
+  left: 50%;
+  top: 150px;
+  width: 1280px;
+  transform: translateX(-50%);
+  text-align: center;
+}
+html[data-layout="poster"] .s1-lead .h2,
+html[data-layout="poster"] .s2-lead .h2,
+html[data-layout="poster"] .s4-lead .h2 { text-align: center; }
+html[data-layout="poster"] .s1-lead .kick,
+html[data-layout="poster"] .s2-lead .kick { justify-content: center; }
+html[data-layout="poster"] .s1-lead .sub,
+html[data-layout="poster"] .s2-lead .sub {
+  max-width: 980px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 场景把坐标写在 inline style 上，版式覆盖必须带 !important */
+html[data-layout="poster"] .copy .kick {
+  left: 0 !important;
+  right: 0;
+  top: 150px !important;
+  justify-content: center;
+}
+html[data-layout="poster"] .copy .h2 {
+  left: 360px !important;
+  right: 360px;
+  width: auto !important;
+  top: 214px !important;
+  text-align: center;
+}
+html[data-layout="poster"] .copy .sub {
+  left: 460px !important;
+  right: 460px;
+  width: auto !important;
+  top: 360px !important;
+  text-align: center;
+}
+html[data-layout="poster"] .copy .s3-sent {
+  left: 340px;
+  right: 340px;
+  width: auto;
+  top: 214px;
+  text-align: center;
+}
+html[data-layout="poster"] .copy .s5-tags {
+  left: 0;
+  right: 0;
+  justify-content: center;
+}
+
+html[data-layout="poster"] .s0-wrap { text-align: center; }
+html[data-layout="poster"] .s0-wrap .s0-rule { margin-left: auto; margin-right: auto; }
+
+html[data-layout="poster"] .hdr { left: 120px; right: 120px; top: 54px; }
+html[data-layout="poster"] .hdr .r { opacity: 0.65; }
+
+html[data-layout="poster"] #subs {
+  left: 50%;
+  width: 1280px;
+  transform: translateX(-50%);
+}
+html[data-layout="poster"] #subs li {
+  left: 0;
+  width: 100%;
+  text-align: center;
+}
+html[data-layout="poster"] #subs li::before { display: none; }
+
+/* ---------- 03 网格 · GRID ----------
+   十二栏、栏线、场次编号；文字与画面都在同一套栏宽里。 */
+
+html[data-layout="grid"] .scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(90deg,
+      color-mix(in srgb, var(--ink) 7%, transparent) 0 1px,
+      transparent 1px calc(100% / 12)),
+    repeating-linear-gradient(0deg,
+      color-mix(in srgb, var(--ink) 3.5%, transparent) 0 1px,
+      transparent 1px 120px);
+  background-position: 120px 0, 0 54px;
+  background-size: calc((100% - 240px) / 12) 100%, 100% 120px;
+  background-repeat: repeat-x, repeat-y;
+}
+
+html[data-layout="grid"] .scene::after {
+  content: attr(data-index) " / " attr(data-total);
+  position: absolute;
+  right: 96px;
+  top: 112px;
+  z-index: 31;
+  font: 600 11px/1 var(--font-mono);
+  letter-spacing: 0.22em;
+  color: var(--accent);
+}
+
+html[data-layout="grid"] .copy,
+html[data-layout="grid"] .s1-lead,
+html[data-layout="grid"] .s2-lead,
+html[data-layout="grid"] .s0-wrap,
+html[data-layout="grid"] .s6-wrap { z-index: 30; }
+
+html[data-layout="grid"] .vis-cluster { z-index: 5; }
+
+html[data-layout="grid"] .s1-lead,
+html[data-layout="grid"] .s2-lead { left: 120px; width: 652px; }
+
+html[data-layout="grid"] .copy .kick { left: 120px; }
+html[data-layout="grid"] .copy .h2 { left: 120px; }
+html[data-layout="grid"] .copy .sub { left: 120px; width: 652px; }
+html[data-layout="grid"] .copy .s3-sent { left: 120px; width: 740px; }
+html[data-layout="grid"] .copy .s5-tags { left: 120px; }
+
+html[data-layout="grid"] .hdr { border-bottom-width: 2px; }
+html[data-layout="grid"] #subs li::before { width: 11px; height: 11px; }
+
+/* ---------- 04 分栏 · SPLIT ----------
+   左栏只放文字，右栏只放画面，中间一条硬分隔线。 */
+
+html[data-layout="split"] .scene::before {
+  content: "";
+  position: absolute;
+  left: 768px;
+  top: 54px;
+  bottom: 82px;
+  width: 1px;
+  z-index: 25;
+  background: var(--hair-2);
+  pointer-events: none;
+}
+
+html[data-layout="split"] .scene::after {
+  content: "FIELD NOTES";
+  position: absolute;
+  left: 768px;
+  top: 50%;
+  z-index: 25;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  font: 600 9px/1 var(--font-mono);
+  letter-spacing: 0.34em;
+  color: var(--mute);
+  background: var(--paper);
+  padding: 10px 8px;
+}
+
+html[data-layout="split"] .copy,
+html[data-layout="split"] .s1-lead,
+html[data-layout="split"] .s2-lead,
+html[data-layout="split"] .s0-wrap,
+html[data-layout="split"] .s6-wrap { z-index: 30; }
+
+html[data-layout="split"] .s1-lead,
+html[data-layout="split"] .s2-lead {
+  left: 96px;
+  top: 186px;
+  width: 632px;
+}
+html[data-layout="split"] .s1-lead .sub,
+html[data-layout="split"] .s2-lead .sub { max-width: 620px; }
+
+html[data-layout="split"] .copy .kick { left: 96px !important; }
+html[data-layout="split"] .copy .h2 { left: 96px !important; }
+html[data-layout="split"] .copy .sub { left: 96px !important; width: 620px !important; }
+html[data-layout="split"] .copy .s3-sent { left: 96px; width: 632px; font-size: 62px; }
+html[data-layout="split"] .copy .s5-tags { left: 96px; width: 632px; flex-wrap: wrap; }
+
+html[data-layout="split"] .vis-cluster {
+  z-index: 5;
+  transform: translate(96px, 16px) scale(0.88);
+  transform-origin: 0 50%;
+}
+
+html[data-aspect="landscape"][data-layout="split"] .s0-wrap,
+html[data-aspect="landscape"][data-layout="split"] .s6-wrap {
+  left: 96px;
+  width: 632px;
+  align-items: flex-start;
+  text-align: left;
+}
+html[data-layout="split"] .s0-slogan,
+html[data-layout="split"] .s6-slogan { white-space: normal; }
+
+html[data-layout="split"] #subs { left: 96px; width: 900px; }

@@ -24,9 +24,9 @@ Look = 主题（theme）+ 版式（layout）+ 动效气质（motion）+ 视觉�
 
 完整关键词见 `assets/template/js/looks.js` 的 `keywords`；`node tools/pick-look.js --list` 会列出全部。
 
-## 选择流程（默认：用户选，AI 只推荐）
+## 选择流程（七问第 5 问：用户选，AI 只推荐）
 
-审美不交给 AI 拍板。除非用户已经指定 look 或明确授权代选，建工程前必须用**编辑器自带的交互选择器**（问题/选项卡片、ask_user、提问工具等）把 15 个方向交给用户，分两轮：
+审美不交给 AI 拍板。这是七问定向里的第 5 问（promo），不要等建完工程再补问。除非用户已经指定 look 或明确授权代选，建工程前必须用**编辑器自带的交互选择器**（问题/选项卡片、ask_user、提问工具等）把 15 个方向交给用户，分两轮：
 
 **第一轮 · 气质方向**（把推荐 look 所在分组标「推荐」）：
 
@@ -50,7 +50,7 @@ node "$SKILL/assets/template/tools/pick-look.js" --root "$SKILL/assets/template"
 - 编辑器没有选择器时：按四个分组打印 15 个编号，请用户回编号；不要默认 auto。
 - 用户说「你定 / 随便 / 自动」时才用 auto，并在交付时说明。
 
-选定的 id 直接进 `new-film.js --look <id>`；不要先 auto 建工程再改配置。
+选定的 id 写进七问答案 `direction.json` 的 `look` 字段，随 `--intake` 建工程；不要先 auto 建工程再改配置。用户明确说「你定」时才写 `"look": "auto"` 与 `"lookAuthorized": true`。
 
 ## 自动推荐（只在用户授权时直接采用）
 

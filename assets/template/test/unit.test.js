@@ -1,10 +1,13 @@
 /* 纯 Node 单元测试：不启浏览器，秒级跑完。
-   覆盖看得到的契约：look 目录、引擎绑定、brief 选择、config、剧本、CLI 输出。 */
+   空白起步工程只校验通用契约：look 目录、场景注册、剧本、CLI 输出。
+   场景数量由故事决定，测试不假设七场。 */
 'use strict';
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 const { execFileSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
@@ -14,6 +17,22 @@ const SCRIPT = require(path.join(root, 'js', 'script.js'));
 
 const THEMES = ['letterpress', 'swiss', 'cinema', 'quiet', 'tech'];
 const ENGINES = ['halftone', 'riso', 'bokeh', 'dust', 'aurora', 'flow', 'scan', 'orbit'];
+const SCENE_DIR = path.join(root, 'js', 'scenes');
+const SCENE_FILES = fs.readdirSync(SCENE_DIR).filter(f => f.endsWith('.js')).sort();
+
+function loadScenes() {
+  const sandbox = {
+    window: { FILM_CONFIG: CONFIG, FILM_SCRIPT: SCRIPT, FILM_SCENES: [] },
+    console
+  };
+  for (const f of SCENE_FILES) {
+    vm.runInNewContext(fs.readFileSync(path.join(SCENE_DIR, f), 'utf8'), sandbox, {
+      filename: f,
+      timeout: 1000
+    });
+  }
+  return sandbox.window.FILM_SCENES;
+}
 
 test('look 目录：15 个，id 唯一，主题/版式/动效/引擎全部合法', () => {
   assert.equal(LOOKS.LOOKS.length, 15);
@@ -66,21 +85,13 @@ test('chooseLook：关键词命中的 confidence 为 high 且命中词出现在�
   }
 });
 
-test('chooseLook：theme 强制时只在该主题内选', () => {
+test('chooseLook：theme 强制时只在该主题内选；空 brief 走 fallback', () => {
   const r = LOOKS.chooseLook('咖啡店日常', { theme: 'swiss' });
   assert.equal(r.look.theme, 'swiss');
   assert.equal(r.confidence, 'medium');
-  const r2 = LOOKS.chooseLook('', { theme: 'cinema' });
-  assert.equal(r2.look.theme, 'cinema');
-});
-
-test('chooseLook：空 brief 走 fallback 且不报错', () => {
-  const r = LOOKS.chooseLook('');
-  assert.equal(r.look.id, LOOKS.DEFAULT_ID);
-  assert.equal(r.confidence, 'fallback');
-  assert.equal(r.score, 0);
-  const r2 = LOOKS.chooseLook(null);
+  const r2 = LOOKS.chooseLook('');
   assert.equal(r2.look.id, LOOKS.DEFAULT_ID);
+  assert.equal(r2.confidence, 'fallback');
 });
 
 test('rankLooks：得分单调递减，alternatives 不含冠军', () => {
@@ -102,17 +113,56 @@ test('config：画幅、时长、帧率在可编码范围', () => {
   assert.ok(Math.abs(ratio - 16 / 9) < 0.01 || Math.abs(ratio - 9 / 16) < 0.01, '只支持 16:9 / 9:16: ' + ratio);
   assert.ok(CONFIG.duration >= 3 && CONFIG.duration <= 600, 'duration 越界');
   assert.ok(CONFIG.fps >= 24 && CONFIG.fps <= 60, 'fps 越界');
-  // posterAt 按 60s 基准书写，运行时随 duration 等比缩放
   assert.ok(CONFIG.posterAt >= 0 && CONFIG.posterAt <= 60.01, 'posterAt 应在 60s 基准内');
 });
 
-test('script：字幕引用真实场景，时间单调且不越界', () => {
-  assert.ok(SCRIPT.subtitles.length >= 5, '字幕太少');
-  const sceneKeys = new Set(Object.keys(SCRIPT).filter(k => /^s\d+$/.test(k)));
-  assert.ok(sceneKeys.size >= 1);
+test('scenes：至少一场，覆盖 [0,60]，id 唯一，mount/seek 齐全', () => {
+  const scenes = loadScenes();
+  assert.ok(scenes.length >= 1, '至少要注册一场');
+  const seen = new Set();
+  for (const s of scenes) {
+    assert.ok(s.id, '场景缺少 id');
+    assert.ok(!seen.has(s.id), '场景 id 重复: ' + s.id);
+    seen.add(s.id);
+    assert.ok(s.end > s.start, s.id + ' 的 end 必须大于 start');
+    assert.equal(typeof s.mount, 'function', s.id + ' 缺少 mount');
+    assert.equal(typeof s.seek, 'function', s.id + ' 缺少 seek');
+  }
+  const list = scenes.slice().sort((a, b) => a.start - b.start);
+  assert.ok(Math.abs(list[0].start) < 1e-6, '时间轴必须从 0 开始');
+  assert.ok(Math.abs(list[list.length - 1].end - 60) < 0.01, '最后一场必须结束于 60s 基准');
+  for (let i = 1; i < list.length; i++) {
+    assert.ok(Math.abs(list[i].start - list[i - 1].end) < 0.01,
+      '场景之间不能有空档或重叠: ' + list[i - 1].id + ' → ' + list[i].id);
+  }
+});
+
+test('index.html：引用全部场景脚本与管线脚本', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  for (const f of SCENE_FILES) {
+    assert.ok(html.includes('js/scenes/' + f), 'index.html 未引用场景脚本: ' + f);
+  }
+  for (const f of ['js/config.js', 'js/script.js', 'js/looks.js', 'js/style.js',
+    'js/media.generated.js', 'js/media.js', 'js/timeline.js']) {
+    assert.ok(html.includes(f), 'index.html 未引用 ' + f);
+  }
+});
+
+test('script：每个场景有文案节，字幕引用真实场景且时间合法', () => {
+  const scenes = loadScenes();
+  const byId = {};
+  scenes.forEach(s => { byId[s.id] = s; });
+  scenes.forEach(s => {
+    assert.ok(SCRIPT[s.id] && typeof SCRIPT[s.id] === 'object', 'SCRIPT 缺少场景文案: ' + s.id);
+  });
+  assert.ok(Array.isArray(SCRIPT.subtitles), 'SCRIPT.subtitles 必须是数组');
+  if (!SCRIPT.subtitles.length) {
+    const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+    assert.ok(html.includes('js/screen-kit.js'), '只有真屏片（screen-kit）允许空字幕，画面内用 screen.caption');
+  }
   const lastAt = {};
   for (const cue of SCRIPT.subtitles) {
-    assert.ok(sceneKeys.has(cue.scene), '字幕指向不存在的场景: ' + cue.scene);
+    assert.ok(byId[cue.scene], '字幕指向不存在的场景: ' + cue.scene);
     assert.ok(typeof cue.text === 'string' && cue.text.trim(), '空字幕');
     assert.ok(cue.text.length <= 40, '单条字幕过长: ' + cue.text);
     assert.ok(cue.at >= 0 && cue.dur > 0, '字幕时间非法: ' + JSON.stringify(cue));
@@ -122,36 +172,22 @@ test('script：字幕引用真实场景，时间单调且不越界', () => {
   }
 });
 
-test('script：片头/片尾与每场标题等字段无 undefined 洞', () => {
-  const walk = (v, pathStr) => {
+test('script：文案无 undefined 洞、空串与 NaN', () => {
+  const walk = (v, at) => {
     if (v == null) return;
-    if (Array.isArray(v)) v.forEach((x, i) => walk(x, pathStr + '[' + i + ']'));
+    if (Array.isArray(v)) v.forEach((x, i) => walk(x, at + '[' + i + ']'));
     else if (typeof v === 'object') {
-      for (const k of Object.keys(v)) walk(v[k], pathStr + '.' + k);
+      for (const k of Object.keys(v)) {
+        if (k !== 'subtitles') walk(v[k], at + '.' + k);
+      }
     } else if (typeof v === 'string') {
-      assert.ok(v.trim().length > 0, pathStr + ' 是空字符串');
+      assert.ok(v.trim().length > 0, at + ' 是空字符串');
+      assert.ok(!/NaN|undefined/.test(v), at + ' 含无效值');
     } else if (typeof v === 'number') {
-      assert.ok(Number.isFinite(v), pathStr + ' 不是有限数');
+      assert.ok(Number.isFinite(v), at + ' 不是有限数');
     }
   };
-  walk(SCRIPT.s0, 's0');
-  walk(SCRIPT.s6, 's6');
-  for (let i = 1; i <= 5; i++) {
-    const s = SCRIPT['s' + i];
-    assert.ok(s && s.hdr && s.kick && (s.title || s.headline), 's' + i + ' 缺标题字段');
-    walk(s, 's' + i);
-  }
-});
-
-test('listLooks：输出可直接 JSON 序列化，字段齐全', () => {
-  const rows = LOOKS.listLooks();
-  assert.equal(rows.length, 15);
-  const parsed = JSON.parse(JSON.stringify(rows));
-  for (const row of parsed) {
-    for (const k of ['id', 'name', 'en', 'theme', 'layout', 'motion', 'engine', 'bestFor', 'desc']) {
-      assert.ok(row[k], row.id + ' 缺字段 ' + k);
-    }
-  }
+  walk(SCRIPT, 'SCRIPT');
 });
 
 test('pick-look CLI：--json 契约稳定，排名长度等于目录长度', () => {

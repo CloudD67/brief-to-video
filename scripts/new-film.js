@@ -24,6 +24,7 @@ const { spawnSync } = require('child_process');
 const STARTER_TEMPLATE = path.resolve(__dirname, '..', 'assets', 'template');
 const DEMO_TEMPLATE = path.resolve(__dirname, '..', 'assets', 'demo-editorial');
 const MV_TEMPLATE = path.resolve(__dirname, '..', 'assets', 'genres', 'mv');
+const STORY_TEMPLATE = path.resolve(__dirname, '..', 'assets', 'genres', 'story');
 
 function usage() {
   console.log(`用法: node new-film.js <target-dir> --intake direction.json [options]
@@ -122,7 +123,8 @@ function normalizeGenre(v) {
   const s = String(v).trim().toLowerCase();
   if (s === 'promo' || s === '宣传片') return 'promo';
   if (s === 'mv' || s === 'paper-story' || s === 'paper') return 'mv';
-  throw new Error('未知类型: ' + v + '\n可用: promo（宣传片） / mv（MV）');
+  if (s === 'story' || s === 'drama' || s === '短剧' || s === '漫剧') return 'story';
+  throw new Error('未知类型: ' + v + '\n可用: promo（宣传片） / mv（MV） / story（3D 横屏短剧）');
 }
 
 function normalizeResolution(v) {
@@ -151,11 +153,21 @@ const MV_IDS = {
   moods: ['dusk-night-storm-dawn', 'day-dusk-night', 'rain-warm-snow', 'other']
 };
 
+const STORY_IDS = {
+  hook: ['wait', 'leave', 'remember', 'return'],
+  people: ['two', 'three', 'four'],
+  endings: ['warm', 'open', 'bittersweet', 'turn'],
+  voice: ['multi', 'single', 'silent'],
+  formats: ['40-16x9', '60-16x9', '90-16x9']
+};
+
 const FORMATS = {
   '60-16x9': { duration: 60, width: 1920, height: 1080 },
   '30-16x9': { duration: 30, width: 1920, height: 1080 },
   '30-9x16': { duration: 30, width: 1080, height: 1920 },
-  '15-9x16': { duration: 15, width: 1080, height: 1920 }
+  '15-9x16': { duration: 15, width: 1080, height: 1920 },
+  '40-16x9': { duration: 40, width: 1920, height: 1080 },
+  '90-16x9': { duration: 90, width: 1920, height: 1080 }
 };
 
 const LABELS = {
@@ -174,6 +186,24 @@ const LABELS = {
     'day-dusk-night': '白昼 → 黄昏 → 深夜',
     'rain-warm-snow': '冷雨 → 暖室 → 雪停',
     other: '其他'
+  },
+  storyFormat: {
+    '40-16x9': '40s · 16:9 · 一集一幕',
+    '60-16x9': '60s · 16:9 · 一集一幕',
+    '90-16x9': '90s · 16:9 · 一集两幕'
+  },
+  storyHook: {
+    wait: '等一个人/一句话',
+    leave: '要不要走',
+    remember: '认不认得出来',
+    return: '该不该回来'
+  },
+  storyPeople: { two: '两个人', three: '三个人', four: '四个人（含一个功能性角色）' },
+  storyEnding: {
+    warm: '暖：人被接住了',
+    open: '开放：答案还没来',
+    bittersweet: '苦甜：来了，但晚了半步',
+    turn: '反转：最后一句把意思翻过来'
   }
 };
 
@@ -194,6 +224,23 @@ function intakeTemplate(genre) {
       format: '60-16x9|30-16x9|30-9x16|15-9x16',
       audio: 'synth|voice|user-music|silent',
       materials: 'none|user'
+    }, null, 2) + '\n';
+  }
+  if (genre === 'story') {
+    return JSON.stringify({
+      _readme: '横屏故事七问：先把每个字段改成实际选择，再传给 --intake；写法见 references/story-drama.md',
+      genre: 'story',
+      format: '40-16x9|60-16x9|90-16x9',
+      hook: 'wait|leave|remember|return',
+      hookNote: '',
+      people: 'two|three|four',
+      peopleNote: '',
+      want: '',
+      obstacle: '',
+      ending: 'warm|open|bittersweet|turn',
+      endingNote: '',
+      voice: 'multi|single|silent',
+      avoid: []
     }, null, 2) + '\n';
   }
   return JSON.stringify({
@@ -246,6 +293,15 @@ function validateIntake(data) {
     if (data.materials == null) data.materials = 'none';
     if (PROMO_IDS.audio.indexOf(data.audio) === -1) throw new Error('direction.json 的 audio 不认识：' + data.audio);
     if (PROMO_IDS.materials.indexOf(data.materials) === -1) throw new Error('direction.json 的 materials 不认识：' + data.materials);
+  } else if (data.genre === 'story') {
+    requireChoice(data, 'format', STORY_IDS.formats, '交付形态');
+    requireChoice(data, 'hook', STORY_IDS.hook, '一句话钩子');
+    requireChoice(data, 'people', STORY_IDS.people, '几个人');
+    requireChoice(data, 'ending', STORY_IDS.endings, '最后停在哪');
+    if (data.voice == null) data.voice = 'multi';
+    if (STORY_IDS.voice.indexOf(data.voice) === -1) throw new Error('direction.json 的 voice 不认识：' + data.voice);
+    if (!data.want || !String(data.want).trim()) throw new Error('direction.json 缺「want」：主角这集想要什么');
+    if (!data.obstacle || !String(data.obstacle).trim()) throw new Error('direction.json 缺「obstacle」：什么挡着他/她');
   } else {
     requireChoice(data, 'music', MV_IDS.music, '歌 / 声音从哪来');
     requireChoice(data, 'protagonist', MV_IDS.protagonists, '这是谁的故事');
@@ -277,6 +333,9 @@ function loadIntake(source, genre) {
 function intakeBrief(intake, genre) {
   if (genre === 'promo') {
     return [intake.subjectNote, intake.audienceNote, intake.memoryNote].filter(Boolean).join('；');
+  }
+  if (genre === 'story') {
+    return [intake.hookNote, intake.peopleNote, intake.want, intake.obstacle, intake.endingNote].filter(Boolean).join('；');
   }
   return [intake.protagonistNote, intake.wantNote, intake.endingNote].filter(Boolean).join('；');
 }
@@ -310,6 +369,22 @@ function applyIntake(opts, intake, genre) {
     }
     opts.look = intake.look === 'auto' ? null : intake.look;
     opts.grammar = intake.subject === 'software' ? 'screen' : 'world';
+  } else if (genre === 'story') {
+    if (opts.look || opts.style || opts.layout) {
+      throw new Error('3D 故事没有 look / 主题 / 版式；--look、--style、--layout 只属于宣传片。');
+    }
+    const f = FORMATS[intake.format];
+    if (opts.duration && opts.duration !== f.duration) {
+      throw new Error('--duration ' + opts.duration + ' 与七问的 ' + intake.format + '（' + f.duration + 's）不一致');
+    }
+    if ((opts.width && opts.width !== 1920) || (opts.height && opts.height !== 1080)) {
+      throw new Error('3D 故事固定 1920×1080 横屏，不做竖屏');
+    }
+    opts.duration = f.duration;
+    opts.width = 1920;
+    opts.height = 1080;
+    opts.vertical = false;
+    opts.grammar = null;
   } else {
     opts.grammar = null;
   }
@@ -324,7 +399,18 @@ function joinNote(label, note) {
 }
 
 function directionTable(intake, genre) {
-  const rows = [['1', '类型', genre === 'mv' ? 'MV（paper-story）' : '宣传片（promo）']];
+  const rows = [['1', '类型', genre === 'mv' ? 'MV（paper-story）' : genre === 'story' ? '3D 横屏短剧（story）' : '宣传片（promo）']];
+  if (genre === 'story') {
+    rows.push(['2', '一句话钩子', joinNote(LABELS.storyHook[intake.hook], intake.hookNote)]);
+    rows.push(['3', '几个人', joinNote(LABELS.storyPeople[intake.people], intake.peopleNote)]);
+    rows.push(['4', '想要 / 挡着', intake.want + ' / ' + intake.obstacle]);
+    rows.push(['5', '结局', joinNote(LABELS.storyEnding[intake.ending], intake.endingNote)]);
+    rows.push(['6', '最怕变成', intake.avoid.length ? intake.avoid.join('；') : '用户未指定']);
+    rows.push(['7', '交付', LABELS.storyFormat[intake.format] + ' · 配音：' + intake.voice]);
+    return ['| # | 问 | 答 |', '|---|---|---|']
+      .concat(rows.map(r => '| ' + r.map(cell).join(' | ') + ' |'))
+      .join('\n');
+  }
   if (genre === 'promo') {
     rows.push(['2', '主角', joinNote(LABELS.subject[intake.subject], intake.subjectNote)]);
     rows.push(['3', '给谁看 / 看完做什么', joinNote(LABELS.audience[intake.audience], intake.audienceNote)]);
@@ -346,6 +432,13 @@ function directionTable(intake, genre) {
 }
 
 function directionLock(intake, genre) {
+  if (genre === 'story') {
+    return {
+      anchor: joinNote(LABELS.storyHook[intake.hook], intake.hookNote) || '（这一集只回答一个问题；一句话）',
+      promise: joinNote(LABELS.storyEnding[intake.ending], intake.endingNote) || '（最后一个镜头让观众感到什么）',
+      notThis: intake.avoid.length ? intake.avoid.join('；') : '（最容易跑偏的两种片，例如 没有对白的空镜集 / 只靠旁白讲完的广播剧）'
+    };
+  }
   if (genre === 'promo') {
     return {
       anchor: joinNote(LABELS.subject[intake.subject], intake.subjectNote) || '（主体在这一支片里只负责什么；一句话）',
@@ -361,7 +454,7 @@ function directionLock(intake, genre) {
 }
 
 function nonTtyIntakeError(genre) {
-  const g = genre === 'mv' ? 'mv' : (genre === 'promo' ? 'promo' : 'promo');
+  const g = genre === 'mv' ? 'mv' : genre === 'story' ? 'story' : (genre === 'promo' ? 'promo' : 'promo');
   return '建工程前必须先问完七问（见 references/intake.md）。\n' +
     '把答案写成 direction.json，再传 --intake direction.json；\n' +
     '或先跑 node new-film.js --intake-template ' + g + ' 生成骨架。\n' +
@@ -420,7 +513,7 @@ function askLook() {
 function askPromoIntake() {
   const subject = askChoice('第 2 问：这支片的主角是什么？', [
     { id: 'software', label: '软件 / AI / 平台', hint: '真屏语法：真实界面、屏幕长镜、主题色间幕卡' },
-    { id: 'hardware', label: '硬件 / 实体产品', hint: '世界语法：真实空间与光、材质微距、屏幕 ≤30%' },
+    { id: 'hardware', label: '硬件 / 实体产品', hint: '世界语法：真实空间与光、材质微距、屏幕镜头只做节拍' },
     { id: 'space', label: '空间 / 场所 / 服务', hint: '世界语法：人在这个空间里做什么' },
     { id: 'people', label: '人物 / 团队 / 理念', hint: '人物与行动为主，产品只做证据' }
   ]);
@@ -507,8 +600,48 @@ function askMvIntake() {
   };
 }
 
+function askStoryIntake() {
+  const hook = askChoice('第 2 问：这一集只回答哪一个问题？', [
+    { id: 'wait', label: '等一个人 / 一句话', hint: '他会不会来' },
+    { id: 'leave', label: '要不要走', hint: '留下还是离开' },
+    { id: 'remember', label: '认不认得出来', hint: '认出 / 认错' },
+    { id: 'return', label: '该不该回来', hint: '回来的代价' }
+  ]);
+  const hookNote = askText('用一句话把钩子说具体（谁、在等/离开什么、卡在哪）');
+  const people = askChoice('第 3 问：这一集有几个人？', [
+    { id: 'two', label: '两个人', hint: '对手戏最稳' },
+    { id: 'three', label: '三个人', hint: '多一个见证者或搅局者' },
+    { id: 'four', label: '四个人', hint: '含一个功能性角色' }
+  ]);
+  const peopleNote = askText('写出每个人的一句话身份与关系');
+  const want = askText('第 4 问：主角这一集想要什么？（必须是一个能在画面上看见的动作或物件）');
+  const obstacle = askText('第 5 问：什么挡着他/她？（必须是这场戏里能看见的东西）');
+  const ending = askChoice('第 6 问：最后停在哪？', [
+    { id: 'warm', label: '暖：人被接住了', hint: '可做系列剧' },
+    { id: 'open', label: '开放：答案还没来', hint: '下一集' },
+    { id: 'bittersweet', label: '苦甜：来了，但晚了半步', hint: '余味' },
+    { id: 'turn', label: '反转：最后一句把意思翻过来', hint: '短视频最强钩子' }
+  ]);
+  const endingNote = askText('用一句话写出最后一个镜头');
+  const voice = askChoice('第 7 问：声音怎么做？', [
+    { id: 'multi', label: '多角色配音 + 合成配乐', hint: '每个角色一个声线（macOS say）' },
+    { id: 'single', label: '单人旁白 + 合成配乐', hint: '只读旁白，台词上屏' },
+    { id: 'silent', label: '静音，只靠字幕', hint: '平台默认静音播放也成立' }
+  ]);
+  const format = askChoice('交付形态？', [
+    { id: '40-16x9', label: '40s · 16:9 · 一集一幕', hint: '示范集节奏' },
+    { id: '60-16x9', label: '60s · 16:9 · 一集一幕', hint: '信息量更大' },
+    { id: '90-16x9', label: '90s · 16:9 · 一集两幕', hint: '需要第二个机位空间' }
+  ]);
+  return {
+    genre: 'story', format, hook, hookNote, people, peopleNote,
+    want, obstacle, ending, endingNote, voice, avoid: []
+  };
+}
+
 function askIntake(genre) {
   console.log('\n七问定向：先定方向。答完我会先回述理解，再写 treatment 给你确认。');
+  if (genre === 'story') return askStoryIntake();
   return genre === 'promo' ? askPromoIntake() : askMvIntake();
 }
 
@@ -535,9 +668,10 @@ function chooseGenre(opts) {
   if (opts.genre) return opts.genre;
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
     throw new Error(
-      '未指定影片类型。先问用户要做「宣传片」还是「MV」，并走完七问。\n' +
+      '未指定影片类型。先问用户要做「宣传片」「MV」还是「3D 短剧」，并走完七问。\n' +
       '  宣传片 = 编辑排版 / look / 主题 / 品牌信息\n' +
-      '  MV     = 层叠剪纸叙事 / 角色 / 镜头 / 底部歌词，不使用 look / 版式\n\n' +
+      '  MV     = 层叠剪纸叙事 / 角色 / 镜头 / 底部歌词，不使用 look / 版式\n' +
+      '  3D 短剧 = 1920×1080 横屏对白戏 / 3D 布景 / 多角色配音（不做竖屏）\n\n' +
       nonTtyIntakeError(null)
     );
   }
@@ -545,11 +679,13 @@ function chooseGenre(opts) {
     '\n这支片属于哪一种？\n' +
     '  [1] 宣传片 · 编辑排版 / look / 品牌信息\n' +
     '  [2] MV     · 层叠剪纸叙事 / 角色 / 镜头 / 底部歌词\n' +
+    '  [3] 3D 短剧 · 1920×1080 横屏对白戏 / 3D 布景 / 多角色配音\n' +
     '选择 [1]: '
   ).toLowerCase();
   if (!answer || answer === '1' || answer === 'promo' || answer === '宣传片') return 'promo';
   if (answer === '2' || answer === 'mv' || answer === 'paper-story' || answer === 'paper') return 'mv';
-  throw new Error('无法识别类型：' + answer + '（输入 1 或 2）');
+  if (answer === '3' || answer === 'story' || answer === 'drama' || answer === '短剧' || answer === '漫剧') return 'story';
+  throw new Error('无法识别类型：' + answer + '（输入 1、2 或 3）');
 }
 
 function setField(source, key, literal) {
@@ -563,6 +699,11 @@ function chromePath() {
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     '/Applications/Chromium.app/Contents/MacOS/Chromium',
     '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  (process.env.LOCALAPPDATA || '') + '/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
     '/usr/bin/google-chrome',
     '/usr/bin/chromium'
   ];
@@ -597,7 +738,7 @@ function main() {
   const tplAt = argv.indexOf('--intake-template');
   if (tplAt !== -1) {
     const g = argv[tplAt + 1];
-    if (!g) throw new Error('--intake-template 需要 promo 或 mv');
+    if (!g) throw new Error('--intake-template 需要 promo、mv 或 story');
     console.log(intakeTemplate(normalizeGenre(g)));
     return;
   }
@@ -617,8 +758,11 @@ function main() {
   if (genre === 'mv' && opts.demo) {
     throw new Error('--demo 只属于宣传片；MV 模板本身就是一支示范分镜，建完请整段替换 film.js。');
   }
+  if (genre === 'story' && opts.demo) {
+    throw new Error('--demo 只属于宣传片；故事模板本身就是一集示范，建完请替换 film.js 与 script.js。');
+  }
   const target = path.resolve(process.cwd(), opts.target);
-  const TEMPLATE = genre === 'mv' ? MV_TEMPLATE : (opts.demo ? DEMO_TEMPLATE : STARTER_TEMPLATE);
+  const TEMPLATE = genre === 'mv' ? MV_TEMPLATE : (genre === 'story' ? STORY_TEMPLATE : (opts.demo ? DEMO_TEMPLATE : STARTER_TEMPLATE));
   if (!fs.existsSync(TEMPLATE)) throw new Error('模板不存在: ' + TEMPLATE);
 
   if (fs.existsSync(target) && fs.readdirSync(target).length > 0 && !opts.force) {
@@ -626,7 +770,11 @@ function main() {
   }
 
   if (genre === 'mv') mvGuard(opts);
-  else if (opts.resolution) throw new Error('--resolution 只属于 MV；宣传片分辨率由 render.js --scale 控制。');
+  else if (genre === 'story') {
+    if (opts.resolution && opts.resolution !== 1) {
+      throw new Error('3D 故事默认且只用 1080p（1920×1080）；需要更高分辨率时先确认用户要求，再改 renderScale。');
+    }
+  } else if (opts.resolution) throw new Error('--resolution 只属于 MV；宣传片分辨率由 render.js --scale 控制。');
 
   let LOOKS = null;
   if (genre === 'promo') {
@@ -645,7 +793,7 @@ function main() {
   }
 
   const brief = opts.brief || [opts.title, opts.slogan, opts.brandSub].filter(Boolean).join(' ');
-  const resolved = genre === 'mv'
+  const resolved = genre === 'mv' || genre === 'story'
     ? { look: null, auto: false }
     : (opts.look ? { look: LOOKS.getLook(opts.look), auto: false }
       : { look: LOOKS.chooseLook(brief, { theme: opts.style || null }).look, auto: true });
@@ -656,6 +804,12 @@ function main() {
     recursive: true,
     filter: (src) => !SKIP.has(path.basename(src)) && path.basename(src) !== 'treatment.md'
   });
+
+  /* 示范集的对白与配乐只属于示范剧本，新一集必须重新生成 */
+  if (genre === 'story') {
+    ['assets/music.wav', 'assets/voiceover.wav', 'assets/voiceover.json']
+      .forEach(f => fs.rmSync(path.join(target, f), { force: true }));
+  }
 
   /* 七问答案落盘：后续写 treatment、改分镜、交付都要先读它，不能各写各的。 */
   const direction = Object.assign({}, intake);
@@ -687,6 +841,19 @@ function main() {
     }
     /* 60s 分镜是绝对秒数，封面时间不再做 60s 基准换算 */
     if (opts.posterAt) config = setField(config, 'posterAt', String(opts.posterAt));
+  } else if (genre === 'story') {
+    /* 故事分镜也是绝对秒数：base 必须跟 duration 一起改 */
+    config = setField(config, 'renderScale', '1');
+    if (opts.duration) {
+      config = setField(config, 'duration', String(opts.duration));
+      config = setField(config, 'base', String(opts.duration));
+      config = setField(config, 'posterAt', String(+Math.max(0.5, opts.duration - 1.1).toFixed(1)));
+    }
+    if (opts.posterAt) {
+      const dur = opts.duration || 40;
+      if (!(opts.posterAt >= 0 && opts.posterAt < dur)) throw new Error('--poster-at 必须落在 0 与片长之间');
+      config = setField(config, 'posterAt', String(opts.posterAt));
+    }
   } else {
     if (opts.duration) {
       config = setField(config, 'duration', String(opts.duration));
@@ -761,6 +928,59 @@ ${qTable}
 （删掉的镜头与原因——被删的比留下的更能说明这支片的选择）
 `);
     }
+  } else if (genre === 'story') {
+    const treatmentPath = path.join(target, 'treatment.md');
+    if (!fs.existsSync(treatmentPath)) {
+      const titleText = opts.title || '未命名短剧';
+      const briefText = opts.brief || '（一句话 brief）';
+      const peopleText = ['A', 'B', 'C'].slice(0, intake.people === 'two' ? 2 : intake.people === 'three' ? 3 : 4)
+        .map(p => `### 人物 ${p}
+- 这一集想要什么：
+- 什么挡着：
+- 不肯说的事：
+- 这一集结束时他/她明白了什么：`).join('\n');
+      fs.writeFileSync(treatmentPath, `# ${titleText} · 横屏故事 treatment
+类型：3D 横屏短剧 · story　写作轨道：人物 / 欲望 / 阻力 / 对白 / 镜头
+片长：${opts.duration || 40}s · 1920×1080 · 一集只回答一个问题
+
+> 一句话 brief：${briefText}
+> 先写 treatment 给用户确认，再改 js/script.js（对白）与 js/film.js（镜头）。对白与镜头必须对得上：每一句台词都要有落点镜头。
+> 下限：候选镜 ≥ ${Math.ceil((opts.duration || 40) / 2.5) + 4}（删到 ${Math.round((opts.duration || 40) / 2.5)} 左右）· 台词 ≥ 8 句 · 每句 ≤ 24 字 · 至少一次「不说话只做动作」的戏。
+
+## 0.0 制作人七问（direction.json）
+${qTable}
+
+## 0. 方向锁
+- 钩子：${lock.anchor}
+- 情绪落点：${lock.promise}
+- 这不是：${lock.notThis}
+- Wild card：（一个不推进剧情、但让观众看懂人物的动作）
+
+## 1. 一句话故事
+（谁 → 这一集想要什么 → 什么挡着 → 做了什么选择 → 最后一句/最后一个动作）
+
+## 2. 人物（${intake.people === 'two' ? 2 : intake.people === 'three' ? 3 : 4} 人）
+${peopleText}
+
+## 3. 节拍表（8–14 拍）
+| # | 时间 | 拍 | 谁做什么 | 观众知道了什么 |
+
+## 4. 对白表（≥8 句，每句标秒数）
+| # | at | dur | 谁说 | 台词 | 屏幕字? |
+
+## 5. 镜头候选（≥${Math.ceil((opts.duration || 40) / 2.5) + 4}，删到 ${Math.round((opts.duration || 40) / 2.5)}）
+| # | 时间 | 景别/机位 | 画面里发生什么（一个动作） | 台词 | 备注 |
+
+## 6. 声音
+（每个角色的声线 / 语速 / 音高；旁白与对白的区别；配乐在哪些拍推进）
+
+## 7. 片尾钩子
+（下一集只留一个问题，不要解释）
+
+## 8. 删除日志
+（删掉的拍与原因——被删的比留下的更能说明这一集的选择）
+`);
+    }
   } else {
     const treatmentPath = path.join(target, 'treatment.md');
     if (!fs.existsSync(treatmentPath)) {
@@ -826,14 +1046,18 @@ ${peopleText}
 
   const indexPath = path.join(target, 'index.html');
   let html = fs.readFileSync(indexPath, 'utf8');
-  const title = opts.title || (genre === 'mv' ? '把答案拼好' : (opts.demo ? '一句话，一条片' : '未命名影片'));
-  const suffix = genre === 'mv' ? ' · PAPER STORY' : ' · BRIEF TO FILM';
+  const title = opts.title || (genre === 'mv' ? '把答案拼好' : genre === 'story' ? '未命名短剧' : (opts.demo ? '一句话，一条片' : '未命名影片'));
+  const suffix = genre === 'mv' ? ' · PAPER STORY' : genre === 'story' ? ' · STORY' : ' · BRIEF TO FILM';
   html = html.replace(/<title>[\s\S]*?<\/title>/, '<title>' + title + suffix + '</title>');
   fs.writeFileSync(indexPath, html);
 
   if (opts.install) {
     console.log('安装依赖（puppeteer-core + ffmpeg）…');
-    const npm = spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: target, stdio: 'inherit' });
+    /* Windows 的 npm 是 npm.cmd，Node 18.20+ 直接 spawn 会被拒，要走 cmd /c */
+    const npmArgs = ['install', '--no-audit', '--no-fund'];
+    const npm = process.platform === 'win32'
+      ? spawnSync(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', 'npm'].concat(npmArgs), { cwd: target, stdio: 'inherit' })
+      : spawnSync('npm', npmArgs, { cwd: target, stdio: 'inherit' });
     if (npm.status !== 0) {
       console.log('\n依赖安装失败，可稍后在工程目录手动运行 npm install。');
     }
@@ -841,8 +1065,9 @@ ${peopleText}
 
   const chrome = chromePath();
   console.log('\n✓ 工程已创建：' + target);
-  console.log('  类型：' + (genre === 'mv' ? 'MV（层叠剪纸叙事）' : (opts.demo ? '宣传片（七场示例 · 仅用于研究契约）' : '宣传片（空白起步 · 先写故事）')));
-  console.log('  片名：' + title + (opts.duration ? '  ·  ' + opts.duration + 's' : '') + '  ·  ' + (opts.width || 1920) + 'x' + (opts.height || 1080));
+  console.log('  类型：' + (genre === 'mv' ? 'MV（层叠剪纸叙事）' : genre === 'story' ? '3D 短剧（story · 1920×1080 横屏对白戏）' : (opts.demo ? '宣传片（七场示例 · 仅用于研究契约）' : '宣传片（空白起步 · 先写故事）')));
+  const sizeText = genre === 'story' ? '1920x1080' : (opts.width || 1920) + 'x' + (opts.height || 1080);
+  console.log('  片名：' + title + (opts.duration ? '  ·  ' + opts.duration + 's' : '') + '  ·  ' + sizeText);
   if (genre === 'promo') {
     console.log('  Look：' + resolved.look.id + '（' + resolved.look.theme + ' / ' + (opts.layout || resolved.look.layout) + ' / ' + resolved.look.motion + ' / ' + resolved.look.engine + '）' + (opts.look ? ' 手动' : ' 自动'));
     if (opts.duration && opts.duration < 50) {
@@ -851,6 +1076,10 @@ ${peopleText}
     console.log(opts.demo
       ? '  示例：js/scenes/ 里是七场编辑排版样例，只用于研究契约与组件，不要直接换色交付。'
       : '  起步：只有 js/scenes/s0.js 一场 0–60s 占位；先写故事与分镜，再按场拆文件。');
+  } else if (genre === 'story') {
+    console.log('  叙事：story · 原生 1920×1080 横屏 · 3D 布景 + 对白字幕 · 无 look / 主题 / 版式');
+    console.log('  交付：1080p（1920×1080，默认）· 配音：' + intake.voice);
+    console.log('  钩子：' + LABELS.storyHook[intake.hook] + '  ·  结局：' + LABELS.storyEnding[intake.ending]);
   } else {
     console.log('  叙事：paper-story · 原生 1920×1080 剪纸画布 · 无 look / 主题 / 版式');
     console.log('  交付：' + (opts.resolution === 2 ? '4K（3840×2160，renderScale 2 矢量重画）' : '1080p（1920×1080，默认）'));
@@ -880,6 +1109,19 @@ ${peopleText}
     console.log('  npm run music && npm run build               # 配乐 + 1080p 渲染 + 合成 + repair 自检');
     console.log('  npm run gate                  # 交付门禁：treatment + 静态 + repair --strict');
     console.log('  扩写：treatment.md 写到每个空间、每条候选镜都能直接拍；不设字数');
+  } else if (genre === 'story') {
+    console.log('  先写 treatment.md（方向锁 / 人物 / 节拍表 / 对白表 / 候选镜 / 声音 / 片尾钩子），确认后再改 js/script.js 与 js/film.js');
+    console.log('  js/script.js：cast（每个角色一个 voice + rate，可加 pitch<1 降调）、lines（at/dur/who/text，绝对秒数）、titleCard 下集钩子');
+    console.log('  js/film.js：15 镜左右、每镜 2–4s；anchor 来自 js/three-sets.js 的机位表；cast 可关掉不需要的角色');
+    console.log('  js/config.js：片长改 duration 与 base（两者必须相等）；1920×1080 固定；封面 posterAt 默认片尾前 1.1s');
+    console.log('  npm run story                 # 先校验剧本/分镜契约：时间断档、台词越界、未知角色');
+    console.log('  npm run voice:dry             # 看每个角色的声线与每句时长（不生成音频）');
+    console.log('  npm run voice                 # 多角色配音 → assets/voiceover.wav');
+    console.log('  npm run music                 # 合成配乐 → assets/music.wav');
+    console.log('  npm run stills                # 抽 10 张关键帧目检（stills/）');
+    console.log('  npm run build:1080            # 契约 → 1080p 逐帧 → 合成（人声 + 配乐闪避）');
+    console.log('  npm test                      # 契约单测 + 配音时长单测');
+    console.log('  硬规则：一集只回答一个问题；每句台词都有落点镜头；每镜都在动；默认只用 1080p');
   } else {
     console.log('  先写 treatment.md（方向锁 / 背景 / 人物与关系 / 母题 / 故事弧 / 歌词段 / ≥32 候选镜 / mood 表，不设字数、越详细越好），确认后再改 js/film.js 与 js/script.js');
     console.log('  js/film.js：20–28 镜、每镜 2–3 秒、每镜一个动作；js/script.js：画布歌词');

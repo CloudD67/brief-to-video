@@ -80,6 +80,14 @@ function sceneKey(file) {
   return n ? 's' + Number(n) : null;
 }
 
+/* 抽帧解码：macOS 走 VideoToolbox，Windows 走 D3D11VA；帧自动回读到内存，
+   不影响后面的 fps/scale 滤镜。硬件解码不可用时自动退回软件解码。 */
+function hwDecodeArgs() {
+  if (process.platform === 'darwin') return ['-hwaccel', 'videotoolbox'];
+  if (process.platform === 'win32') return ['-hwaccel', 'd3d11va'];
+  return [];
+}
+
 function extractVideo(ffmpeg, file, key) {
   const base = path.basename(file, path.extname(file));
   const dir = path.join(srcDir, 'frames', base);
@@ -88,14 +96,21 @@ function extractVideo(ffmpeg, file, key) {
   const vf = 'fps=' + opts.fps + ",scale='min(" + opts.width + ",iw)':-2";
   log('    抽帧  ' + rel(file) + '  → ' + rel(dir) + '/  @' + opts.fps + 'fps  最多 ' + opts.maxFrames + ' 帧');
   if (opts.dryRun) return [];
-  const r = spawnSync(ffmpeg, [
+  const runOnce = extra => spawnSync(ffmpeg, [
     '-y', '-hide_banner', '-loglevel', 'error',
+    ...extra,
     '-i', file,
     '-vf', vf,
     '-frames:v', String(opts.maxFrames),
     '-q:v', '3',
     pattern
   ], { encoding: 'utf8' });
+  const hw = hwDecodeArgs();
+  let r = runOnce(hw);
+  if (r.status !== 0 && hw.length) {
+    log('    ! 硬件解码失败，改用软件解码：' + rel(file));
+    r = runOnce([]);
+  }
   if (r.status !== 0) throw new Error('抽帧失败 ' + rel(file) + '：' + (r.stderr || '').trim());
   const frames = fs.readdirSync(dir)
     .filter(f => /^frame_\d+\.jpg$/.test(f))

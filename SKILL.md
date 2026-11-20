@@ -1,6 +1,6 @@
 ---
 name: brief-to-video
-description: 把一句话的视频需求做成可交付成片，先分类型：宣传片（promo，编辑排版 + look 系统）或 MV（mv，层叠剪纸叙事 + 角色 + 镜头 + 底部歌词），两套语法绝不混用。宣传片默认空白起步、每支片现场写故事与分镜，**一句话 brief 先扩写成 treatment（世界/人物/序列/30 镜候选/4 色域，不设字数、越详细越好）再写分镜**（--demo 才复制七场示范工程，只用于研究契约）；硬件/实体产品片走世界语法（多空间、多色域、屏幕 ≤30%），软件/AI/平台类走“真屏语法”：全出血真实界面 + 屏幕长镜与子节拍 + 主题色间幕卡标点 + 底部胶囊字幕 + 桌面拼贴结尾，界面用授权网页抓帧或 screen-kit 手搭（见 product-film-grammar.md）。参考片只学其动效、转场与真实卡片技术，配色/吉祥物/字标等个性一律按当次品牌重定，支持 16:9 横屏与 9:16 竖屏，内置 15 个 curated look（5 主题 × 4 版式 × 4 动效气质）与 8 个确定性视觉引擎，默认用编辑器的选择器把方向交给用户选（AI 只排序推荐）；MV 用原生 1920×1080 剪纸画布、镜头制分镜（每镜 2–3 秒）、角色与画布底部歌词，**treatment 要写透背景、人物、关系、母题、歌词段与镜头候选**，16:9 输出，默认 1080p、4K 可选（矢量重画）。宣传片全片连续运镜 + 平滑缓动，可选真实图片/视频抽帧、授权网页抓帧与 macOS 中文旁白（含配乐侧链闪避）。当用户说“帮我做个视频 / 宣传片 / 企业宣传 / 品牌片 / MV / 剪纸动画 / 叙事短片 / 动态海报 / 产品片 / 功能讲解 / 真屏演示 / 屏幕录制式 / 发布会开场 / 活动预告 / 竖屏短视频 / 口播视频 / 把这段文案做成视频 / 照这个视频做”，或只给一句主题并期待一个 MP4 时使用。流程为 HTML/CSS/JS 时间轴 → Puppeteer 逐帧渲染 → FFmpeg 编码 1080p（4K 按需） → 单测/版式/节奏/引擎/画布/运动/色彩体检 + 抽帧目检 + 交付前自检修复（npm run repair）。
+description: 把一句话的视频需求做成可交付成片，先分类型：宣传片（promo，编辑排版 + look 系统）或 MV（mv，层叠剪纸叙事 + 角色 + 镜头 + 底部歌词），两套语法绝不混用。宣传片默认空白起步、每支片现场写故事与分镜，**一句话 brief 先扩写成 treatment（世界/人物/序列/30 镜候选/4 色域，不设字数、越详细越好）再写分镜**（--demo 才复制七场示范工程，只用于研究契约）；硬件/实体产品片走世界语法（多空间、多色域，屏幕镜头不设硬配额），软件/AI/平台类走“真屏语法”：全出血真实界面 + 屏幕长镜与子节拍 + 主题色间幕卡标点 + 底部胶囊字幕 + 桌面拼贴结尾，界面用授权网页抓帧或 screen-kit 手搭（见 product-film-grammar.md）。参考片只学其动效、转场与真实卡片技术，配色/吉祥物/字标等个性一律按当次品牌重定，支持 16:9 横屏与 9:16 竖屏，内置 15 个 curated look（5 主题 × 4 版式 × 4 动效气质）与 8 个确定性视觉引擎，默认用编辑器的选择器把方向交给用户选（AI 只排序推荐）；MV 用原生 1920×1080 剪纸画布、镜头制分镜（每镜 2–3 秒）、角色与画布底部歌词，**treatment 要写透背景、人物、关系、母题、歌词段与镜头候选**，16:9 输出，默认 1080p、4K 可选（矢量重画）。3D 短剧（story）用原生 1920×1080 横屏 Three.js 布景 + 剪纸人物 + 多角色对白配音（macOS say，男声降调），绝对秒数分镜，带 story 契约校验与配音时长单测，只做 1080p 横屏、不做竖屏；可选 Blender CG 引擎（真实 HDRI/PBR/体积/粒子/景深、程序化角色与口型表演，Metal 加速）渲染真实感镜头，用于 AI 漫剧成片。宣传片全片连续运镜 + 平滑缓动，可选真实图片/视频抽帧、授权网页抓帧与 macOS 中文旁白（含配乐侧链闪避）。当用户说“帮我做个视频 / 宣传片 / 企业宣传 / 品牌片 / MV / 剪纸动画 / 叙事短片 / 动态海报 / 产品片 / 功能讲解 / 真屏演示 / 屏幕录制式 / 发布会开场 / 活动预告 / 竖屏短视频 / 口播视频 / 3D 短剧 / 横屏短剧 / 对白戏 / 多角色配音 / 把这段文案做成视频 / 照这个视频做”，或只给一句主题并期待一个 MP4 时使用。流程为 HTML/CSS/JS 时间轴 → Puppeteer 逐帧渲染 → FFmpeg 编码 1080p（4K 按需） → 单测/版式/节奏/引擎/画布/运动/色彩体检 + 抽帧目检 + 交付前自检修复（npm run repair）。
 ---
 
 # Brief to Video
@@ -10,33 +10,45 @@ description: 把一句话的视频需求做成可交付成片，先分类型：�
 输入一句需求（或一段文案），输出一条完成度可交付的短片：
 
 - 一条成片（默认 1080p；4K 仅在用户这次明确要求时）、一张封面帧 `out/poster.png`、一套 QA 抽帧与体检报告
-- 一个可继续改文案、换 look（宣传片）或改镜头（MV）的工程目录
+- 一个可继续改文案、换 look（宣传片）或改镜头（MV / 3D 短剧）的工程目录
 
-**先分两种类型，语法不共用：**
+**先分三种类型，语法不共用：**
 
 - **宣传片 `promo`**：编辑排版语法。5 个主题（`letterpress` / `swiss` / `cinema` / `quiet` / `tech`）× 4 个版式（`editorial` / `poster` / `grid` / `split`）× 4 个 motion，内置 15 个 curated look；每个 look 绑定一个确定性视觉引擎（`halftone` / `riso` / `bokeh` / `dust` / `aurora` / `flow` / `scan` / `orbit`）。**每支片现场写故事与分镜**：模板只提供舞台、主题、组件与 QA，主角、拍数、场景、画面都由这一支片的 brief 决定，和 MV 一样不套固定骨架；`--demo` 才复制老的七场编辑排版示例，只用于研究契约。审美默认由用户选：AI 先按 brief 排序推荐，再用编辑器的选择器把方向交给用户。支持 16:9 与 9:16、真实素材、授权网页抓帧、旁白。
-- **MV `mv`**：层叠剪纸叙事语法。原生 1920×1080 Canvas 剪纸画布：纸边高光 + 柔和投影 + 纸纹，固定机位、镜头制分镜（60s 约 20–28 镜，每镜 2–3 秒）、剪影纸人角色、画布底部歌词、片尾卡；画面只靠浪/雨/火/雾/呼吸在动，逐帧可复现。MV **没有** look / 主题 / 版式 / 引擎，固定 16:9；引擎层通用，故事层每支片重写。
+- **MV `mv`**：层叠剪纸叙事语法。原生 1920×1080 Canvas 剪纸画布：纸边高光 + 柔和投影 + 纸纹，固定机位、镜头制分镜（60s 约 20–28 镜，每镜 2–3 秒）、剪影纸人角色、画布底部歌词、片尾卡；画面只靠浪/雨/火/雾/呼吸在动，逐帧可复现。MV **没有** look / 主题 / 版式，固定 16:9；渲染引擎两档——默认 Canvas 2D 剪纸，可选 Blender「3D 纸剧场」（`engine: "cg"`，纸片有厚度与真光影）。引擎层通用，故事层每支片重写。
+- **3D 短剧 `story`**：横屏对白戏语法。原生 1920×1080 Three.js 布景（雨/霓虹/景深/辉光）+ 剪纸人物贴片 + 绝对秒数分镜（40s 约 15 镜，每镜 2–4 秒）+ 多角色对白配音 + 底部对白字幕 + 手机屏插入 + 片尾钩子。用户明确不要 TTS / 不要字幕时走**静默版**：不生成 voice.json、不烧字幕，信息全交给道具、动作、光与配乐（CG 引擎下最自然）。story **只做 1080p、只做 16:9 横屏**，没有 look / 版式 / 歌词 / 纸层，也不接受 9:16 工程；一集只回答一个问题。
 
-宣传片的场景与字幕按 60s 基准编写，改 `config.duration` 后运行时自动等比缩放；MV 的分镜是绝对秒数，改片长必须重排 `film.js`。全片可见文案集中在 `js/script.js`，场景文件只负责画。宣传片旁白可选：`npm run voice` 用 macOS `say` 按字幕时间轴生成，`encode.js` 自动混音并压低配乐；MV 的歌词可用 `npm run song` 接入用户成品歌与 LRC。
+宣传片的场景与字幕按 60s 基准编写，改 `config.duration` 后运行时自动等比缩放；MV 与 story 的分镜是绝对秒数，改片长必须重排 `film.js`。全片可见文案集中在 `js/script.js`，场景文件只负责画。宣传片旁白可选：`npm run voice` 用 macOS `say` 按字幕时间轴生成，`encode.js` 自动混音并压低配乐；MV 的歌词可用 `npm run song` 接入用户成品歌与 LRC；story 的对白由 `cast` 固定声线逐句生成，**多角色配音默认是交付的一部分**；只有用户明确要“无声 / 不要 TTS / 不要字幕”时才做静默版（`encode.js --no-voice`，见 `references/cg-pipeline.md` §3.2）。
 
 ## 安装 / 升级
 
 ```bash
+# macOS / Linux
 scripts/install.sh                  # 复制到 ~/.qoder/skills/brief-to-video
 scripts/install.sh --dest DIR       # 指定位置
 scripts/install.sh --link           # 开发模式：软链当前目录
 scripts/install.sh --force          # 覆盖旧版本
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy Bypass -File scripts\install.ps1
+powershell -ExecutionPolicy Bypass -File scripts\install.ps1 -Dest D:\skills\brief-to-video -Force
 ```
 
-手动安装：把整个目录复制到 `~/.qoder/skills/`，重启会话或 `/skills reload`，用 `/brief-to-video` 调用。版本见 `VERSION`（3.0.0），许可 MIT，方法来源见 `ATTRIBUTIONS.md`。模板工程首次使用需 `npm install`（puppeteer-core + ffmpeg installer）。
+手动安装：把整个目录复制到 `~/.qoder/skills/`，重启会话或 `/skills reload`，用 `/brief-to-video` 调用。版本见 `VERSION`（3.8.0），许可 MIT，方法来源见 `ATTRIBUTIONS.md`。模板工程首次使用需 `npm install`（puppeteer-core + ffmpeg installer）。
+
+两端都支持，差异集中在五个地方：Chrome/Edge 路径探测、硬件编码（macOS VideoToolbox / Windows NVENC·QSV·AMF）、字幕字体（苹方 / 微软雅黑）、旁白 TTS（仅 macOS `say`）与缩图（`sips` 仅 macOS）。完整对照表见 `references/pipeline.md` §2.1。CG 引擎的便携 Blender 对应 `scripts/install-blender.ps1`。
 
 ## 先读什么
 
-- **定类型读 `references/genres.md`**：宣传片 vs MV 的决策树、对照表、MV 语法与常见错误。
+- **定类型读 `references/genres.md`**：宣传片 / MV / 3D 横屏短剧的决策树、对照表、MV 语法与常见错误。
 - **拿到宣传片 brief，先读 `references/brief-expansion.md`**：一句话 → treatment 的方向锁、四层扩写、配额（序列/空间/镜头/色域，不设字数）、模板与质量门槛。跳过它直接分镜，片子就会变成功能演示。**MV 不读这份、也不套这些配额**：MV 的扩写单位是背景、人物、关系、母题、故事弧、歌词段与镜头候选，见 M1 与 `references/mv-craft.md` §0。
-- **做硬件/实体产品读 `references/hardware-promo-grammar.md`**：世界先行语法（世界 → 仪式 → 细节 → 使用 → 结果 → 收束）、三层空间、材质与光、屏幕 ≤30%、反模式与验收。
+- **做硬件/实体产品读 `references/hardware-promo-grammar.md`**：世界先行语法（世界 → 仪式 → 细节 → 使用 → 结果 → 收束）、三层空间、材质与光、屏幕镜头的经验值（仅提示）、反模式与验收。
 - **做软件/AI/平台产品片读 `references/product-film-grammar.md`**：真屏语法（全出血界面 + 一条任务 + 长镜子节拍），只适用于软件产品；硬件片不要套它。
 - **做 MV 读 `references/mv-craft.md`**：引擎/内容/配置三层分离、分镜字段、纸层画法、歌词安全区、坏帧修法与交付检查单。
+- **用 3D 布景、雨雾 VFX 或渲染长片读 `references/film-tech.md`**：Three.js 舞台（createStage/renderAt/景深/泛光/机位锚点）、2D VFX 层、并行与分块渲染、VideoToolbox 加速与验收。
+- **要真实感 CG 成片读 `references/cg-pipeline.md`**：Blender 程序化渲染（HDRI/PBR/体积/粒子/景深）、`cg/film.py` 写法、`cg_kit` 构件、Metal 性能与 ETA、Blender 5.3 的坑。Three.js story 是 previs，CG 是成片。
+- **CG 镜头里要有人读 `references/cg-characters.md`**：程序化人体比例、19 骨绑定与手写蒙皮、脸/眼皮/口型部件、`cg_char` 的 build/idle/look/blink/speak 表演 API、say→包络→口型管线与角色验收清单。
+- **CG 镜头里要有布料/火/水/滚动物读 `references/cg-vfx.md`**：构建期 PBD 布料 + shape key 烘焙、火焰体积与热床、无 velocity API 的刚体设计、水花粒子与水洼材质，以及 headless Blender 5.3 的物理限制。
 - **交付前读 `references/repair-loop.md`**：自检修复的六项检查、修复循环、缺陷目录（残影/时间线/裁切/过期/单色）与像素取证。
 - 选 look 读 `references/looks.md`：15 个方向、用户选择流程与推荐规则、版式/竖屏/素材。
 - 想知道“为什么这样好看、该改哪个文件”读 `references/design-dna.md`：Ground→Content→Moment 三层、8 个引擎、借来的设计方法、签名动作、反套路黑名单。
@@ -58,6 +70,7 @@ scripts/install.sh --force          # 覆盖旧版本
 |---|---|---|
 | 宣传片 `promo` | 编辑排版：主题 + 版式 + look + 品牌信息；纸感/暖白/银幕/网格/终端五类气质；故事与分镜现场写；**软件/AI/平台类走真屏语法**（全出血产品界面 + 主题色间幕卡） | `assets/template`（空白起步；`--demo` 才是七场示例） |
 | MV `mv` | 层叠剪纸叙事：原生 1920×1080 纸层、镜头制分镜、剪影纸人、画布底部歌词；像一支剪纸定格短片 | `assets/genres/mv` |
+| 3D 短剧 `story` | 横屏对白戏：1920×1080 3D 布景 + 剪纸人物、对白字幕、多角色配音、片尾钩子；像一集电影感短剧 | `assets/genres/story` |
 
 第 1 问单独一张选择器卡片（信号明确也要确认一次类型，不要用默认值猜）：
 
@@ -67,21 +80,22 @@ scripts/install.sh --force          # 覆盖旧版本
   "header": "影片类型",
   "options": [
     { "label": "宣传片", "description": "编辑排版 + look 系统：品牌、卖点、产品、数据；默认 60s，可竖屏" },
-    { "label": "MV", "description": "层叠剪纸叙事：镜头制分镜、角色与底部歌词，讲一个小故事；16:9，原生 1920×1080，默认 1080p，4K 可选" }
+    { "label": "MV", "description": "层叠剪纸叙事：镜头制分镜、角色与底部歌词，讲一个小故事；16:9，原生 1920×1080，默认 1080p，4K 可选" },
+    { "label": "3D 短剧", "description": "横屏对白戏：1920×1080、3D 布景 + 剪纸人物、多角色配音，一集一个钩子；只做 1080p 横屏" }
   ]
 }
 ```
 
 拿到类型后，第 2–5 问放一张卡片，第 6–7 问放一张卡片：
 
-| # | 宣传片 promo | MV |
-|---|---|---|
-| 2 | 主角是什么：软件/AI/平台 · 硬件/实体 · 空间/场所/服务 · 人物/团队/理念 | 歌/声音从哪来：成品歌+歌词 · 纯音乐 · 本地合成 · 静音 |
-| 3 | 给谁看、看完做什么：潜在客户 · 专业客户/合作方 · 内部/投资人 · 公众/社媒 | 这是谁的故事：一个人 · 两个人 · 一群人 · 一个地方/物件的视角 |
-| 4 | 只记住一个东西：一个具体时刻 · 产品被使用的一瞬 · 一个麻烦被解决 · 一种生活方式 | 最想要什么、什么挡着：等一个人 · 离开 · 守住 · 找回 |
-| 5 | 气质：两轮选择器选 look（15 个方向，AI 只排序推荐） | 最后一个镜头停在什么情绪：重逢 · 释然 · 继续上路 · 没有答案但人变了 |
-| 6 | 最怕拍成什么：功能演示/只拍屏幕 · 城市空镜集 · 参数目录 · 空洞品牌隐喻诗 | 最怕变成什么：纯空镜风景片 · 歌词配图 · 抽象诗 · 角色走过场 |
-| 7 | 交付形态：60s 16:9 · 30s 16:9 · 30s/15s 9:16，含声音与素材 | 情绪走向：黄昏→夜→风暴→黎明 · 白昼→黄昏→深夜 · 冷雨→暖室→雪停 · 其他 |
+| # | 宣传片 promo | MV | 3D 短剧 story |
+|---|---|---|---|
+| 2 | 主角是什么：软件/AI/平台 · 硬件/实体 · 空间/场所/服务 · 人物/团队/理念 | 歌/声音从哪来：成品歌+歌词 · 纯音乐 · 本地合成 · 静音 | 这一集只回答哪个问题：等一个人 · 要不要走 · 认不认得出来 · 该不该回来 |
+| 3 | 给谁看、看完做什么：潜在客户 · 专业客户/合作方 · 内部/投资人 · 公众/社媒 | 这是谁的故事：一个人 · 两个人 · 一群人 · 一个地方/物件的视角 | 这一集有几个人：两个人 · 三个人 · 四个人（各一句身份与关系） |
+| 4 | 只记住一个东西：一个具体时刻 · 产品被使用的一瞬 · 一个麻烦被解决 · 一种生活方式 | 最想要什么、什么挡着：等一个人 · 离开 · 守住 · 找回 | 主角想要什么（画面能看见的动作/物件）· 什么挡着（这场戏里能看见的东西） |
+| 5 | 气质：两轮选择器选 look（15 个方向，AI 只排序推荐） | 最后一个镜头停在什么情绪：重逢 · 释然 · 继续上路 · 没有答案但人变了 | —（结局在第 6 问） |
+| 6 | 最怕拍成什么：功能演示/只拍屏幕 · 城市空镜集 · 参数目录 · 空洞品牌隐喻诗 | 最怕变成什么：纯空镜风景片 · 歌词配图 · 抽象诗 · 角色走过场 | 最后停在哪：暖 · 开放 · 苦甜 · 反转（各配一句最后一个镜头） |
+| 7 | 交付形态：60s 16:9 · 30s 16:9 · 30s/15s 9:16，含声音与素材 | 情绪走向：黄昏→夜→风暴→黎明 · 白昼→黄昏→深夜 · 冷雨→暖室→雪停 · 其他 | 声音怎么做：多角色配音 · 单人旁白 · 静音只靠字幕；交付 40s/60s/90s · 16:9 横屏 |
 
 规则：
 
@@ -90,7 +104,7 @@ scripts/install.sh --force          # 覆盖旧版本
 - 用户说「你定 / 随便」时不要跳过：给 2–3 个具体方案与取舍，推荐一个，让用户确认；仍授权才记录「AI 提案，用户确认」。
 - 七问答案写进 `direction.json`，建工程时用 `--intake direction.json`；`new-film.js` 会把答案预填进 `treatment.md` 的方向锁，后续写作不得与它矛盾。非终端、没给 `--intake` 时 CLI 会直接报错，提示先问完七问——不要绕过。
 
-拿到答案再往下走：promo 走第 1–12 步；MV 直接跳第 M0 步。**MV 里不加 look/主题/版式，宣传片里不塞剪纸场景与画布歌词。** 动笔写稿前，先在 `treatment.md` 第一行写明“类型 + 写作轨道”（宣传片：世界/空间/序列/色域；MV：故事/人物/歌词/镜头），写稿时只读对应那一套方法，不要把两种稿子混在一起。
+拿到答案再往下走：promo 走第 1–12 步；MV 直接跳第 M0 步；story 直接跳第 S0 步。**MV 里不加 look/主题/版式，宣传片里不塞剪纸场景与画布歌词，story 里不塞 look/歌词/纸层。** 动笔写稿前，先在 `treatment.md` 第一行写明“类型 + 写作轨道”（宣传片：世界/空间/序列/色域；MV：故事/人物/歌词/镜头；story：人物/欲望/阻力/对白/节拍），写稿时只读对应那一套方法，不要把三种稿子混在一起。
 
 ### A. 宣传片（promo）
 
@@ -107,7 +121,7 @@ scripts/install.sh --force          # 覆盖旧版本
 | 音乐 | 默认本地合成（calm）；动作/科技 → tense；温暖叙事 → warm |
 | 旁白 | 默认无旁白；用户要求口播、解说或文案较长时跑 `npm run voice` |
 | 素材 | 默认代码绘制；用户给照片/视频时才放 `assets/media/` 并 `npm run media` |
-| 产品画面 | 软件/AI/平台 → 全出血真界面（授权页面抓帧，或 `js/screen-kit.js` 手搭发布级界面）；硬件/实体 → 世界语法：产品在真实空间与光里，屏幕 ≤30%（`references/hardware-promo-grammar.md`） |
+| 产品画面 | 软件/AI/平台 → 全出血真界面（授权页面抓帧，或 `js/screen-kit.js` 手搭发布级界面）；硬件/实体 → 世界语法：产品在真实空间与光里，屏幕镜头不设硬配额（`references/hardware-promo-grammar.md`） |
 
 七问已经覆盖类型、对象、记忆点、气质、禁忌与交付；这张表只在用户没有偏好或答案含糊时给默认建议，不能替代七问。
 
@@ -175,11 +189,11 @@ shots: [
 ]
 ```
 
-`at`/`dur` 是**成片秒数**（不是场景内秒数），`space`/`frame`/`subject` 用来查空间数与相邻镜重复；`screen: true` 标屏幕镜、`macro: true` 标微距、`human: true` 标人手/人迹。`npm run check` 按 grammar 判：world 要 ≥4 空间、屏幕 ≤30%、微距 ≥2、人迹 ≥2（30s 以下对半）；screen 要屏幕 ≥50%；相邻两镜不能同空间 + 同主体 + 同景别。改完场景必须同步改 `config.shots`，否则 check 直接失败。
+`at`/`dur` 是**成片秒数**（不是场景内秒数），`space`/`frame`/`subject` 用来查空间数与相邻镜重复；`screen: true` 标屏幕镜、`macro: true` 标微距、`human: true` 标人手/人迹。`npm run check` 按 grammar 判：world 要 ≥4 空间、微距 ≥2、人迹 ≥2（30s 以下对半）；屏幕占比只做诊断——world 超过 30% 或 screen 低于 50% 都只警告，不拦交付；相邻两镜不能同空间 + 同主体 + 同景别。改完场景必须同步改 `config.shots`，否则 check 直接失败。
 
 **3.1 按产品类型选语法。** 两种语法不混用：
 
-- **硬件 / 实体产品**（笔记本、耳机、相机、汽车、家电、家具……）走 `references/hardware-promo-grammar.md` 的**世界语法**：产品活在真实空间与光里，人只给手/背影/剪影；屏幕镜头 ≤30%，且每一条屏幕镜头都必须对应一个状态变化（否则它就是功能演示）。六段结构：世界 → 仪式 → 细节 → 使用 → 结果 → 收束。禁止：深色渐变里的悬浮产品、九成屏幕镜头、单色到底、产品静止不动、字幕喊“轻薄/强大”而画面没证据。
+- **硬件 / 实体产品**（笔记本、耳机、相机、汽车、家电、家具……）走 `references/hardware-promo-grammar.md` 的**世界语法**：产品活在真实空间与光里，人只给手/背影/剪影；屏幕镜头不设配额，但每一条屏幕镜头都必须对应一个状态变化（否则它就是功能演示），经验上别超过三成。六段结构：世界 → 仪式 → 细节 → 使用 → 结果 → 收束。禁止：深色渐变里的悬浮产品、九成屏幕镜头、单色到底、产品静止不动、字幕喊“轻薄/强大”而画面没证据。
 - **软件 / AI / 平台**走 `references/product-film-grammar.md` 的**真屏语法**：全出血真实界面 + 一条任务（谁，要完成什么，卡在哪，谁接手）+ 8–16s 屏幕长镜与 1.93s 间幕卡节拍。**没有界面的产品，先做界面（真页面或 screen-kit），再谈拍法。** 界面之外的皮肤按当次品牌重新定，不沿用参考片。
 
 #### 4. 建工程
@@ -311,7 +325,7 @@ npm test                  # look/引擎绑定/config/剧本/CLI 契约，秒级�
 npm run gate:pre          # 写作门禁：treatment + check（或 MV 单测），渲染前必须过
 ```
 
-`doctor` 把“渲染到一半才发现没 Chrome/磁盘不够”提前暴露：4K 全片按 8.5MB/帧估算。`check` 必须全部通过：配置合法、主题令牌契约、WCAG 对比度（正文 ≥10:1、字幕 ≥7:1）、字幕有序/不重叠/阅读速度/跨切点、场景覆盖、引用齐全、JS 语法、CSS 裸数字、颜色字面量，以及分镜契约（空间数/屏幕占比/微距/人迹/相邻镜重复）。
+`doctor` 把“渲染到一半才发现没 Chrome/磁盘不够”提前暴露：4K 全片按 8.5MB/帧估算。`check` 必须全部通过：配置合法、主题令牌契约、WCAG 对比度（正文 ≥10:1、字幕 ≥7:1）、字幕有序/不重叠/阅读速度/跨切点、场景覆盖、引用齐全、JS 语法、CSS 裸数字、颜色字面量，以及分镜契约（空间数/微距/人迹/相邻镜重复；屏幕占比只警告）。
 
 #### 9. 自动体检（一条命令）
 
@@ -352,6 +366,8 @@ node synth-music.js --mood calm        # 生成 assets/music.wav
 npm run voice                           # 可选：旁白 → assets/voiceover.wav
 node render.js --scale 1 --from 0 --to 12   # 低成本试渲前 12 秒
 node render.js --scale 1 && node encode.js  # 1080p 全片审片
+node render.js --scale 1 --workers 3        # 长片：3 个页面并行逐帧
+node tools/render-chunks.js . --chunk 60 --workers 3 --format jpg --encode   # 90s+ 分块渲染
 ```
 
 `encode.js` 自动检测 `assets/voiceover.wav`：有旁白时音乐降到 0.40 左右并侧链闪避；无旁白时音乐 0.55、2s 淡入淡出。可调 `--voice-gain` / `--music-gain` / `--no-duck` / `--no-voice` / `--muted`。审片通过后按需出 4K（用户这次明确要求时）：
@@ -384,6 +400,8 @@ npm run gate                                                       # 交付门�
 ### B. MV（paper-story，层叠剪纸叙事）
 
 MV 是**代码绘制的层叠剪纸叙事短片**：原生 1920×1080 Canvas、纸边高光 + 柔和投影 + 纸纹、固定机位镜头制分镜、剪影纸人、画布底部歌词。不做 AI 生图、不接实拍素材。引擎层通用，故事层每支片整段重写；完整经验与坏帧修法见 `references/mv-craft.md`。
+
+同一个故事也可以走 **3D 纸剧场（`engine: "cg"`，可选）**：同一张 24 镜表交给 Blender EEVEE，纸片有真实厚度、灯光是真灯光、镜头有真景深，仍是纯代码生成的剪纸。默认仍是 Canvas 2D 引擎；只有用户要“更立体 / 更像定格布景”时才切换，写法见 `references/mv-craft.md` §13。
 
 #### M0. 建工程前必须确认的事（不猜）
 
@@ -495,6 +513,118 @@ npm run music                                   # 可选；不生成则 encode �
 - 不“先建 promo 再改成 MV”或反过来；类型先定，再建工程。
 - 参考片只学方法（镜头长度、切点节奏、纸层构图、歌词安全区），不复制角色/台词/画面/音乐；第三方视频先确认授权，只提取结构手法。
 
+#### M9. 3D 纸剧场（可选引擎 `engine: "cg"`）
+
+MV 的第二套渲染引擎：分镜、故事、歌词完全沿用上面 M1–M5，只把画面交给 Blender（`cg/paper.py` + `cg/mv3d.py`）渲成有厚度、有真光影的纸剧场。**默认不用**，用户要立体感/定格布景感时再启用。
+
+```bash
+npm run subs                                   # 歌词 → assets/subs.ass
+node tools/cg-render.js --at 6.2,23.7,38.7     # 先抽静帧 QC，逐张看完再开渲
+node tools/cg-render.js --from 0 --to 30       # 分两段并行
+node tools/cg-render.js --from 30 --to 60
+node encode.js --subs assets/subs.ass          # 音乐 + ASS 烧字
+node tools/repair.js .
+```
+
+- 分镜写进 `cg/mv3d.py` 底部 `SHOTS`（`('s18', s18, '说明', bake, exposure)`），2.5s/镜 × 30fps；同场景重复必须换机位，不能重放同一构图。
+- 静帧名不补零（`still_6.20.png`）；时间 T 属于第 `floor(T/2.5)+1` 镜。
+- 渲染中途不要改 `cg/*.py`；断了用 `--resume` 从缺口续渲。
+- 画法硬规则（`edge=None` 合并轮廓、侧脸起伏幅度、眼窝自发光点、暖光只打轮廓、睡姿单独搭）见 `references/mv-craft.md` §13。
+- 歌词在 3D 版里由 ASS 烧进画面，`encode.js` 必须带 `--subs assets/subs.ass`，否则成片没歌词。
+
+### C. 3D 短剧（story，横屏对白戏）
+
+完整语法与踩坑见 `references/story-drama.md`。
+
+#### S0. 建工程前必须确认的事
+
+| 问题 | 为什么必须确认 | 写进哪里 |
+|---|---|---|
+| 这一集回答哪个问题？ | 一集只回答一个，多了就是预告片 | `direction.json` 的 hook / hookNote |
+| 几个人、谁跟谁说话？ | 决定 cast 与声线数量 | `people` / `peopleNote` |
+| 想要什么、什么挡着？ | 没有阻力的对白是聊天 | `want` / `obstacle` |
+| 停在哪、片尾钩子是什么？ | 决定最后一镜与 `titleCard.hook` | `ending` / `endingNote` |
+| 多角色配音还是静音？ | 决定 `npm run voice` 与交付形态 | `voice` |
+
+1920×1080 与 1080p 不用问：3D 赛道只做横屏这一种，不做竖屏。
+
+#### S1. 建工程
+
+```bash
+SKILL="$HOME/.qoder/skills/brief-to-video"
+node "$SKILL/scripts/new-film.js" ./my-story \
+  --intake direction.json \
+  --title "雨停之前"
+```
+
+- story 会拒绝 `--look / --style / --layout / --vertical`、9:16 与 4K；`--duration` 只能取 intake 的 40/60/90。
+- 建完先跑 `npm run story`：契约不过不许写画面。
+
+#### S2. 写剧本（js/script.js）
+
+1. **cast**：每个出声角色一个 `voice`（只用已下载的系统语音）+ `rate`；男声/老人加 `pitch < 1` 降调。
+2. **lines**：`at / dur / who / text` 全是绝对秒数；一句 6–14 字；`screen: true` 的台词只进手机屏。
+3. **phone**：有 `phone: true` 的镜头才写；片尾钩子写进 `titleCard.hook`。
+4. 台词必须有落点镜头；旁白只报时间与气氛，不替人物说心事。
+
+#### S3. 写分镜（js/film.js）
+
+1. 先改 `three-sets.js` 的 `anchorList`（机位库），再排 15 镜左右；每镜 2–4 秒、首尾相接。
+2. 每镜写 `anchor + fov + push/drift + focus/aperture + note`；至少一个运动量，**没有静帧**。
+3. 不需要的角色用 `cast: { her: false }` 关掉；手机插入镜 `phone: true`。
+4. 人物走位（如他从巷子走来）在 `timeline.js` 的 `applyCast` 里改，出现时间必须与镜头切点对齐。
+
+#### S4. 配音与配乐
+
+```bash
+npm run voice:list     # 先看有哪些已下载的中文语音
+npm run voice:dry      # 核对每句槽位与字数
+npm run voice          # assets/voiceover.wav + voiceover.json
+npm run music          # assets/music.wav（calm）
+```
+
+超槽位先缩文本、再提 `rate`；改 `dur` 要回查分镜切点。整轨静音通常是选了未下载的语音。
+
+#### S5. 校验、抽帧与渲染
+
+```bash
+npm run story:strict                 # 契约严格模式，警告也失败
+npm test                             # 契约 + 配音时长单测
+npm run stills                       # 10 张关键帧，先目检人物与构图
+node render.js --scale 1 && node encode.js   # 1920×1080 成片
+```
+
+抽帧重点：建立镜、每个角色近景、手机插入、空镜、双人镜、片尾卡。人物先看“像不像人”（脖子、肩线、脸），再看表演。
+
+#### S6. CG 引擎（真实感成片 / AI 漫剧）
+
+Three.js 轨道是 **previs**：构图、机位、对白节奏用它快速迭代。要“不像模板、像拍出来的”时切 CG 引擎，画面用 Blender 程序化建模 + 真实 HDRI/PBR + 体积/粒子 + 景深逐帧渲染，仍然是代码画的。完整方法、构件 API 与踩坑见 `references/cg-pipeline.md`。
+
+```bash
+"$SKILL/scripts/install-blender.sh"    # 便携版 Blender（Metal，不装系统路径）
+"$SKILL/scripts/fetch-cg-assets.sh"    # Poly Haven CC0 的 HDRI / PBR
+# Windows 用 scripts\install-blender.ps1 与 scripts\fetch-cg-assets.ps1
+
+# js/config.js 写 engine: 'cg'，然后
+node tools/cg-render.js --at 1,3.5 --samples 8   # 先抽帧定构图
+node tools/cg-render.js --samples 24             # 全片 EEVEE
+npm run build:cg                                  # 渲染 + 编码
+```
+
+- 实景/道具/灯光写进 `cg/film.py`，通用构件（HDRI、PBR、霓虹字、蒸汽体积、雨、机位、合成器）调 `cg/cg_kit.py`；**每支片重写布景与镜头**，不改 kit 做创作。
+- **人也是代码**：`cg/cg_char.py` 提供 `build()` 程序化人体（19 骨、手写蒙皮、脸/眼皮/口型）+ `idle/look/blink/speak/pose_arms` 表演；对白用 macOS `say` 生成 wav，`cg_audio.envelope()` 转逐帧开口曲线喂 `speak()`。示范与全部坑见 `references/cg-characters.md`，跑 `assets/genres/story/cg/character.py`（面摊 6s 说一句话）看效果。**静默片的角色用 v2 做法**（融合网格 + 贴花五官，无眼球/眼睑/嘴唇件，`speak()` 为空操作）：见 `references/cg-characters.md` §10 与《留一碗》工程。
+- **物理也是代码**：`cg/cg_vfx.py` 提供布料（构建期 PBD + shape key，headless 下 Cloth modifier 不步进）、火焰烟体积、刚体滚落/弹跳、水花粒子与水洼；API 与 5.3 的物理限制见 `references/cg-vfx.md`，跑 `assets/genres/story/cg/vfx.py`（巷口收摊 5s）看效果。
+- **整集也是代码**：`cg/cg_film.py` 管镜头表（按镜搭景、成片帧号连续、`--resume` 跳过整镜、`--poster` 封面、跨镜造型/光向连续性与台词落点校验）；`cg/voice.json` + `tools/cg-voice.js` 一条命令出逐句 wav、整轨 `voiceover.wav` 与 `subs.ass/.srt`，Blender 端用 wav 包络驱动 `cg_char.speak()` 口型。三镜示范 `cg/short.py`；67.5s / 16 镜实战见 `references/cg-pipeline.md` §3.1–3.2。
+- **配音陷阱**：新版 macOS 中文语音名带语言后缀（如 `Flo (中文（中国大陆）)`），必须整名传给 `say -v`；截掉括号会静默退回英语空壳。`cg-voice` 已修并加了空结果硬报错，别用旧写法绕。静默版不建 `voice.json`，`node encode.js --no-voice`（音乐 0.55）。
+- 参考耗时（M 系列 10 核 / 16GB，1080p 24fps，EEVEE）：简单布景 24 采样 ≈2.8s/帧；复杂体积镜头 ≈9–12.5s/帧；**67.5s / 16 镜 / 体积+雨+DOF 实测 16 采样 ≈20s/帧（单进程 9h），拆两进程 12 采样 ≈16s/帧（≈5h）**。加进程不线性——GPU 饱和时只是切时间片；要更快只能降采样或删体积。hero 镜头才升 Cycles。角色镜头先 `--at` 抽说话峰值/眨眼/首帧，再全渲。
+- 先 8 采样抽帧，再全渲；中断用 `--resume`。渲染中和渲染后都要目检雨丝方向、蒸汽浓度、霓虹曝光与首帧穿模。
+
+#### S7. 与另外两种类型的边界
+
+- story 工程里不出现 look / 主题 / 版式 / 引擎 / 纸层 / 歌词；也不把 story 模板拿去拍产品卖点。
+- 不“先建 promo/MV 再改成 story”；类型先定，再建工程。
+- 交付只留 `out/final.mp4` 与 `out/poster.png`，中间帧与 stills 清掉。
+
 ## 命令速查
 
 ### 宣传片（promo）
@@ -532,6 +662,8 @@ npm run music                                   # 可选；不生成则 encode �
 | `node render.js --at 1.5,33,58.3` | 指定时刻抽帧到 `stills/` |
 | `node render.js --scale 1 --from 0 --to 12` | 试渲一段 |
 | `node render.js --resume` | 断点续渲 |
+| `npm run render:parallel` | 并行逐帧（3 workers，长片提速） |
+| `npm run render:chunks -- --chunk 60 --format jpg --encode` | 分块渲染 + 自动编码（长片/剧集） |
 | `node synth-music.js --mood warm --bpm 92` | 重新配乐 |
 | `node encode.js --proxy` | 出 1080p 代理 |
 | `npm run clean` | 清掉 frames/out/stills/qa（谨慎） |
@@ -557,9 +689,34 @@ npm run music                                   # 可选；不生成则 encode �
 | `npm run repair` | 交付前自检：新鲜度/容器/抽帧/运动，报告 `qa/repair.json` |
 | `npm run build` / `build:4k` | 1080p / 4K 渲染 + 编码 + repair |
 
+### 3D 短剧（story · 横屏）
+
+| 命令 | 作用 |
+|---|---|
+| `npm run story` | 故事契约校验：断档/越界/角色/手机字段/片尾 |
+| `npm run story:strict` | 严格模式，警告也失败（交付前必须过） |
+| `npm test` | 契约 + 配音时长单测（8 项） |
+| `npm run voice:list` | 列出系统中文语音（只挑已下载的） |
+| `npm run voice:dry` | 只打印每句时间与字数，不出音频 |
+| `npm run voice` | 多角色配音 → `assets/voiceover.wav` + `voiceover.json` |
+| `npm run music` | 合成配乐 → `assets/music.wav` |
+| `npm run stills` | 10 张关键帧 → `stills/` |
+| `npm run repair` | 交付前自检：新鲜度/容器/切点抽帧/空帧/触边，报告 `qa/repair.json` |
+| `node render.js --scale 1` | 1920×1080 全片逐帧（原生，默认） |
+| `node encode.js` | VideoToolbox 编码 + 人声/配乐闪避 → `out/final.mp4` |
+| `npm run build:1080` | 契约 → 渲染 → 编码一条龙 |
+| `npm run render:cg` | CG 引擎渲染（config 里 `engine: 'cg'`；`cg/film.py`） |
+| `node tools/cg-render.js --at 1,3.5 --samples 8` | CG 抽帧定构图（便宜、快） |
+| `node tools/cg-render.js --file cg/character.py --at 1.8,2.25` | 角色表演示范（面摊 6s、say 口型）抽帧 |
+| `node tools/cg-render.js --file cg/vfx.py --at 1.4,3.0` | VFX 示范（门帘/炉火/滚罐/水花 5s）抽帧 |
+| `node tools/cg-render.js --poster 4.2` | CG 全片 + 封面 `out/poster.png` |
+| `npm run build:cg` | CG 渲染 → 编码一条龙 |
+| `scripts/install-blender.sh` / `scripts/fetch-cg-assets.sh`（Windows: `.ps1`） | 装便携 Blender 5.3 / 下载 CC0 HDRI+PBR |
+| `npm run clean` | 清掉 frames/out/stills（谨慎） |
+
 ## 硬规则（都是踩过坑换来的）
 
-1. **类型先定，语法不混**：先问宣传片还是 MV；MV 不加 look/主题/版式，宣传片不塞剪纸场景与画布歌词。
+1. **类型先定，语法不混**：先问宣传片、MV 还是 3D 短剧；MV 不加 look/主题/版式，宣传片不塞剪纸场景与画布歌词，story 不塞 look/歌词/纸层。
 2. **故事先于分镜，分镜先于版式**：每支宣传片先写主角/欲望/阻力/改变，再写分镜表；禁止直接套 `--demo` 的七场骨架、只换颜色与文案。判断标准：把品牌名换掉后，故事是否仍然成立且只属于这支片。
 3. **切点头部要“已经在”**：页眉、页脚、裁切标记的入场从负本地时间开始，切点后 50ms 内必须可见；MV 是硬切，切点瞬间场景层就要完整就位。
 4. **主体入场不要从画外飞入**：入场位移控制在 ±8–90px，用遮罩上推代替横飞。
@@ -597,25 +754,41 @@ npm run music                                   # 可选；不生成则 encode �
 36. **屏幕长镜按拍数切**：屏幕镜头 8–16s，每 1.5s 必须有变化；切点长度量化到 1.93s（4 拍 @124BPM）的整数倍，间幕卡正好一拍。
 37. **参考片只学技术，不学皮肤**：可学的是动效时序、转场方式、真实卡片种类与真实数据；颜色、胶囊、吉祥物、字标、CTA 排版、镜序都属对方个性，必须按当次 brief 重做。做换名测试：换个品牌画面仍完全成立，就是抄错了层。
 38. **扩写先于分镜，但两种类型写两套稿**：宣传片先写 `treatment.md`（方向锁 + 一句话故事 + ≥6 空间 + ≥10 序列 + ≥30 候选镜 + ≥4 色域，配额查 `references/brief-expansion.md`）；MV 写得更厚（方向锁 + 背景 + 人物与关系 + 母题 + 故事弧 + 四段歌词 + ≥32 候选镜删到 20–28 + mood ≥3 档，见 M1 与 `references/mv-craft.md` §0）。两边都不设字数上下限，写得越详细越好；两种 treatment 与分镜表都确认后才开渲。跳过扩写直接画，宣传片会变成功能演示，MV 会变成歌词配空镜。
-39. **硬件产品不套真屏语法**：硬件/实体产品走 `references/hardware-promo-grammar.md` 的世界语法，屏幕镜头 ≤30% 且只用于状态变化；≥4 色域、主色域 ≤60%、明暗跨度 ≥0.10、材质/微距 ≥3 镜、人物痕迹 ≥2 处。软件/AI/平台才用全出血真屏语法，两者不许混。
+39. **硬件产品不套真屏语法**：硬件/实体产品走 `references/hardware-promo-grammar.md` 的世界语法，屏幕镜头只做提示、不设硬配额，且只用于状态变化；≥4 色域、主色域 ≤60%、明暗跨度 ≥0.10、材质/微距 ≥3 镜、人物痕迹 ≥2 处。软件/AI/平台才用全出血真屏语法，两者不许混。
 40. **交付闸门是 `npm run gate`**：它 = treatment 结构 + `check-project`（含分镜契约）或 MV 单测 + `repair --strict`；全通过、`qa/gate.json` 为绿、8 项清单确认、静帧四角看过、`final.mp4` 比所有源文件新，才算交付。有缺陷按 `references/repair-loop.md` 修完重跑，不允许“应该没问题”式交付。
 41. **七问先于建工程**：第 1 问用选择器定类型，之后各 6 问；答案落进 `direction.json`，`--intake` 建工程并预填 treatment 方向锁。非终端没有 `--intake` 会被 CLI 拒绝；不要用 `--genre` + 默认值绕过，也不要把七问当成用户替你写片。
 42. **写作门禁是 `npm run gate:pre`**：treatment 结构 + 静态检查/单测不过，不许开渲。配额是下限不是处方；写得越详细越好，但不许写只有形容词、落不到画面的段落。
+43. **story 只做 1080p 横屏**：原生 1920×1080、24fps；不接受 4K、9:16 与 `--vertical` 缩放。分镜、台词、`config.base` 全是绝对秒数，改一处要同步另两处。
+44. **story 的交付必须有对白**：`cast` 至少两个出声角色，`npm run voice` 生成多角色配音再 encode；选语音前先 `voice:list` 并试听，未下载的新语音会输出静音。
+45. **story 过 strict 才渲染**：`npm run story:strict` 与 `npm test` 全绿再开渲；台词跨切点、镜头断档、未知角色、手机字段缺失都按失败处理。
+46. **story 每镜都在动**：推镜/漂移/手持微动/雨/蒸汽/呼吸；静止超过 1 秒就是事故。人物先像人再谈表演——脖子过长、方块躯干、围兜式围裙都是剪纸人物通病。
+47. **长片用并行/分块，帧号必须连续**：90s 以上宣传片用 `--workers 3` 或 `render-chunks.js`（jpg + 分块）；块与块首尾相接，`encode.js` 连续性检查必须过；换 look/主题/版式先清空 `frames/`，不要混片。
 
 ## 资源导航
 
-- `scripts/new-film.js`：从模板建工程；七问答案用 `--intake direction.json` 传入（`--intake-template promo|mv` 生成骨架），非终端缺 intake 会报错要求先问完七问；promo 默认空白起步、`--demo` 才复制七场示例；mv 会拒绝 `--look/--style/--layout/--vertical`。
+- `scripts/new-film.js`：从模板建工程；七问答案用 `--intake direction.json` 传入（`--intake-template promo|mv|story` 生成骨架），非终端缺 intake 会报错要求先问完七问；promo 默认空白起步、`--demo` 才复制七场示例；mv 会拒绝 `--look/--style/--layout/--vertical`；story 只接受 40/60/90s 16:9、拒绝 look/版式/9:16/4K。
 - `references/intake.md`：七问定向的问题库（宣传片 / MV 各 7 问）、选项 id、细节追问边界、回述模板与 `direction.json` 格式。
 - `scripts/install.sh`：安装到 `~/.qoder/skills/brief-to-video`（或指定目录）。
-- `references/genres.md`：宣传片 vs MV 的完整对照、MV 语法与常见错误。
+- `references/genres.md`：宣传片 / MV / 3D 横屏短剧的三种类型对照、MV 语法、story 速览与常见错误。
 - `references/brief-expansion.md`：宣传片的一句话 → treatment：方向锁、四层扩写、配额表（序列/空间/镜头/色域，不设字数）、`treatment.md` 模板、压缩规则、工作示例与反模式（含回访案例）。
-- `references/hardware-promo-grammar.md`：硬件/实体产品片的世界语法：六段结构、三层空间、光与材质、屏幕 ≤30%、镜头语言、色彩脚本、反模式与验收（3 秒世界测试 / 6 帧 3 空间 / 去色 / 静音 / qa:motion / qa:variety / 换名测试）。
+- `references/hardware-promo-grammar.md`：硬件/实体产品片的世界语法：六段结构、三层空间、光与材质、屏幕镜头的经验值（仅提示）、镜头语言、色彩脚本、反模式与验收（3 秒世界测试 / 6 帧 3 空间 / 去色 / 静音 / qa:motion / qa:variety / 换名测试）。
 - `references/product-film-grammar.md`：真屏产品片语法（技术层/零件层/个性层）：九条语法、三种转场、间幕卡/字幕时序、真实卡片清单、真实度清单、60s 装配表、反模式。
 - `references/repair-loop.md`：交付前自检修复：六项检查、修复循环、九类缺陷目录（残影/孤立亮点/板块面/时间线矛盾/错继承/键盘字形/相机裁切/过期交付/画面单调）、像素取证与交付闸门。
 - `assets/template/js/product-kit.js`：硬件/实体产品视觉套件（三层空间/窗光/浮尘/桌面接触阴影/铝壳键帽/开合光扫），`product.hardwareShot()` 一次成镜；`styles/product.css` 配套。
 - `assets/template/js/screen-kit.js`：真屏零件库（窗口/分栏/终端/看板/卡片/交接弹窗/任务条/对话记录/字幕/间幕卡/拼贴/连线/光标），全部 `seek(local)` 确定性驱动。
 - `assets/template/styles/screen.css`：真屏样式；色板在 `tokens.css` 的 `--scr-*`，不写死颜色。
+- `references/film-tech.md`：3D 舞台（three-kit/three-sets）、2D VFX、并行与分块渲染、VideoToolbox 加速与验收清单。
+- `assets/template/js/three-kit.js`：确定性 Three.js 舞台（PBR/三点光/阴影/雾/景深/动态模糊/泛光/ACES/颗粒/FXAA + 雨尘蒸汽火花/体积光/材质/程序化贴图）。
+- `assets/template/js/three-sets.js`：霓虹雨巷布景（湿沥青/砖墙/招牌/面摊/雨雾/人物剪纸/机位锚点表）。
+- `assets/template/js/vfx-kit.js`：2D 确定性 VFX（雨/尘/烟/火/火星/体积光/光晕/暗角/颗粒）。
+- `assets/template/tools/render-chunks.js`：长片分块渲染（帧号连续，`--format jpg` 省磁盘，`--encode` 一条龙）。
+- `assets/template/vendor/`：离线 three.min.js（不引 CDN）。
 - `references/mv-craft.md`：MV 的扩写方法（方向锁/背景/人物与关系/母题/故事弧/歌词段/≥32 候选镜/mood 脚本，§0）、分镜字段、纸层画法、歌词安全区、确定性、坏帧修法与交付检查单。
+- `references/story-drama.md`：3D 横屏短剧的剧本/分镜契约、3D 布景与剪纸人物、机位锚点、横屏语法、一集五拍、多角色配音、校验与常见错误。
+- `assets/genres/story/`：3D 短剧工程（1920×1080 + 15 镜示范集《雨停之前》+ 3D 雨夜面摊 + 剪纸人物 + 多角色配音 + story 契约校验 + 单测）。
+- `assets/genres/story/tools/validate-story.js`：故事契约校验（断档/越界/未知角色/手机字段/片尾），`npm run story` / `story:strict`。
+- `assets/genres/story/tools/voiceover.js`：按 cast 多声线配音（macOS say + 降调），产出 `voiceover.wav` 与实测时长清单。
+- `assets/genres/story/tools/repair.js`：交付前自检（新鲜度/容器/切点与收镜抽帧/空帧/触边，报告 `qa/repair.json`），`npm run repair`。
 - `assets/template/tools/doctor.js`：环境体检（Node/依赖/Chrome/ffmpeg/磁盘/主题/配乐），渲染前先跑。
 - `assets/template/tools/check-treatment.js`：treatment 结构验收（方向锁/空间/序列/候选镜/色域，按片长缩放配额），`npm run check:treatment`。
 - `assets/template/tools/gate.js`：交付门禁，`--pre` 只跑 treatment + 静态/单测，全门禁叠 `repair --strict`，报告 `qa/gate.json`。

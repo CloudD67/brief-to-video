@@ -28,6 +28,8 @@ const DEFAULTS = {
   from: 0,
   to: CONFIG.duration || 60,
   format: 'png',
+  jpegQuality: 95,
+  fast: false,
   out: null,
   at: null,
   chrome: null,
@@ -43,6 +45,11 @@ const CHROME_CANDIDATES = [
   '/Applications/Chromium.app/Contents/MacOS/Chromium',
   '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
   '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  (process.env.LOCALAPPDATA || '') + '/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   '/usr/bin/google-chrome',
   '/usr/bin/chromium',
   '/usr/bin/chromium-browser'
@@ -58,6 +65,8 @@ function usage() {
   --from <sec>     起始时间（默认 0）
   --to <sec>       结束时间（默认 ${CONFIG.duration}）
   --format <fmt>   png | jpg（默认 png）
+  --fast           快速采集：默认切到 jpg q92（迭代/审片用；交付按需重渲 png）
+  --jpeg-quality <n> jpg 质量 1-100（默认 95，--fast 时 92）
   --at <list>      抽帧模式：逗号分隔的秒数，例如 1.5,15,33
   --out <dir>      输出目录（默认 frames/，抽帧为 stills/）
   --resume         跳过已存在的帧（按 manifest 校验参数一致）
@@ -94,7 +103,9 @@ function parseArgs(argv) {
       case '--fps': opts.fps = Number(next()); break;
       case '--from': opts.from = Number(next()); break;
       case '--to': opts.to = Number(next()); break;
-      case '--format': opts.format = String(next()).toLowerCase(); break;
+      case '--format': opts.format = String(next()).toLowerCase(); opts.formatExplicit = true; break;
+      case '--fast': opts.fast = true; break;
+      case '--jpeg-quality': opts.jpegQuality = Number(next()); opts.jpegQualityExplicit = true; break;
       case '--at': opts.at = String(next()).split(',').map(Number).filter(n => Number.isFinite(n)); break;
       case '--out': opts.out = next(); break;
       case '--chrome': opts.chrome = next(); break;
@@ -111,7 +122,12 @@ function parseArgs(argv) {
   if (!(opts.fps > 0)) throw new Error('--fps 必须大于 0');
   if (!['png', 'jpg', 'jpeg'].includes(opts.format)) throw new Error('--format 仅支持 png 或 jpg');
   if (opts.format === 'jpeg') opts.format = 'jpg';
+  if (!(opts.jpegQuality >= 1 && opts.jpegQuality <= 100)) throw new Error('--jpeg-quality 必须在 1-100 之间');
   opsCheck(opts);
+  if (opts.fast) {
+    if (!opts.formatExplicit) opts.format = 'jpg';
+    if (!opts.jpegQualityExplicit) opts.jpegQuality = 92;
+  }
   return opts;
 }
 
@@ -140,14 +156,16 @@ function opsCheck(opts) {
   opts.outDir = path.resolve(ROOT, opts.out || (stills ? 'stills' : 'frames'));
   if (!opts.chrome) {
     opts.chrome = process.env.CHROME_PATH || CHROME_CANDIDATES.find(p => fs.existsSync(p)) || null;
-  } else if (opts.chrome.indexOf('/') !== -1) {
+  } else if (/[\\/]/.test(opts.chrome) || path.isAbsolute(opts.chrome)) {
     opts.chrome = path.resolve(opts.chrome);
     if (!fs.existsSync(opts.chrome)) throw new Error('--chrome 指定的文件不存在: ' + opts.chrome);
   }
   if (!opts.chrome) {
     throw new Error(
       '未找到 Chrome。请用 --chrome 指定路径，或设置环境变量 CHROME_PATH。\n' +
-      '常见路径: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+      '常见路径:\n' +
+      '  macOS    /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\n' +
+      '  Windows  C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
     );
   }
   if (stills && opts.at.length === 0) throw new Error('--at 没有有效的秒数');
@@ -238,6 +256,11 @@ function diskCheck(opts, outW, outH, todo, ext) {
 }
 
 async function main() {
+  /* engine: "cg" 时整条渲染交给 Blender（cg/mv3d.py）；
+     帧仍写 frames/frame_%04d.png，encode/repair 不用改。 */
+  if ((CONFIG.engine || 'paper') === 'cg') {
+    return require('./tools/cg-render.js').run(process.argv.slice(2));
+  }
   const opts = parseArgs(process.argv.slice(2));
   fs.mkdirSync(opts.outDir, { recursive: true });
   if (opts.fps !== CONFIG.fps) {
@@ -353,7 +376,7 @@ async function main() {
       optimizeForSpeed: true,
       captureBeyondViewport: false
     };
-    if (ext === 'jpg') shotOpts.quality = 95;
+    if (ext === 'jpg') shotOpts.quality = opts.jpegQuality;
 
     const t0 = Date.now();
 

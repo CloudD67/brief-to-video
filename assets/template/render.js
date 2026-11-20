@@ -25,6 +25,8 @@ const DEFAULTS = {
   from: 0,
   to: CONFIG.duration || 60,
   format: 'png',
+  jpegQuality: 95,
+  fast: false,
   out: null,
   at: null,
   style: null,
@@ -35,7 +37,8 @@ const DEFAULTS = {
   port: 0,
   resume: false,
   quiet: false,
-  headed: false
+  headed: false,
+  workers: 1
 };
 
 const CHROME_CANDIDATES = [
@@ -43,6 +46,11 @@ const CHROME_CANDIDATES = [
   '/Applications/Chromium.app/Contents/MacOS/Chromium',
   '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
   '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  (process.env.LOCALAPPDATA || '') + '/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   '/usr/bin/google-chrome',
   '/usr/bin/chromium',
   '/usr/bin/chromium-browser'
@@ -58,6 +66,8 @@ function usage() {
   --from <sec>     起始时间（默认 0）
   --to <sec>       结束时间（默认 ${CONFIG.duration}）
   --format <fmt>   png | jpg（默认 png）
+  --fast           快速采集：默认切到 jpg q92（迭代/审片用；交付按需重渲 png）
+  --jpeg-quality <n> jpg 质量 1-100（默认 95，--fast 时 92）
   --at <list>      抽帧模式：逗号分隔的秒数，例如 1.5,15,33
   --out <dir>      输出目录（默认 frames/，抽帧为 stills/）
   --look <id>      指定 look（主题+版式+动效）；auto = 按 brief 自动（默认）
@@ -65,6 +75,7 @@ function usage() {
   --brief <str>    临时覆盖 brief 文本，供 --look auto 计分
   --style <name>   临时覆盖视觉风格（letterpress|swiss|cinema|quiet|tech）
   --resume         跳过已存在的帧（按 manifest 校验参数一致）
+  --workers <n>    并行页数（默认 1；长片建议 3–4，最多 8）
   --chrome <path>  指定 Chrome/Chromium 可执行文件
   --port <n>       本地服务端口，0 = 随机
   --headed         显示浏览器窗口（调试用）
@@ -97,7 +108,9 @@ function parseArgs(argv) {
       case '--fps': opts.fps = Number(next()); break;
       case '--from': opts.from = Number(next()); break;
       case '--to': opts.to = Number(next()); break;
-      case '--format': opts.format = String(next()).toLowerCase(); break;
+      case '--format': opts.format = String(next()).toLowerCase(); opts.formatExplicit = true; break;
+      case '--fast': opts.fast = true; break;
+      case '--jpeg-quality': opts.jpegQuality = Number(next()); opts.jpegQualityExplicit = true; break;
       case '--at': opts.at = String(next()).split(',').map(Number).filter(n => Number.isFinite(n)); break;
       case '--style': opts.style = String(next()); break;
       case '--look': opts.look = String(next()); break;
@@ -107,6 +120,7 @@ function parseArgs(argv) {
       case '--chrome': opts.chrome = next(); break;
       case '--port': opts.port = Number(next()); break;
       case '--resume': opts.resume = true; break;
+      case '--workers': opts.workers = Number(next()); break;
       case '--quiet': opts.quiet = true; break;
       case '--headed': opts.headed = true; break;
       default:
@@ -115,12 +129,19 @@ function parseArgs(argv) {
   }
   if (!(opts.scale > 0)) throw new Error('--scale 必须大于 0');
   if (!(opts.fps > 0)) throw new Error('--fps 必须大于 0');
+  if (!(opts.workers >= 1)) throw new Error('--workers 必须大于等于 1');
+  opts.workers = Math.min(8, Math.floor(opts.workers));
   if (!['png', 'jpg', 'jpeg'].includes(opts.format)) throw new Error('--format 仅支持 png 或 jpg');
   if (opts.format === 'jpeg') opts.format = 'jpg';
+  if (!(opts.jpegQuality >= 1 && opts.jpegQuality <= 100)) throw new Error('--jpeg-quality 必须在 1-100 之间');
   if (opts.style && !/^[a-z0-9-]+$/.test(opts.style)) throw new Error('--style 只能是小写字母、数字和连字符');
   if (opts.look && opts.look !== 'auto' && !/^[a-z0-9-]+$/.test(opts.look)) throw new Error('--look 只能是小写字母、数字和连字符');
   if (opts.layout && opts.layout !== 'auto' && !/^[a-z0-9-]+$/.test(opts.layout)) throw new Error('--layout 只能是小写字母、数字和连字符');
   opsCheck(opts);
+  if (opts.fast) {
+    if (!opts.formatExplicit) opts.format = 'jpg';
+    if (!opts.jpegQualityExplicit) opts.jpegQuality = 92;
+  }
   return opts;
 }
 
@@ -174,14 +195,16 @@ function opsCheck(opts) {
   }
   if (!opts.chrome) {
     opts.chrome = process.env.CHROME_PATH || CHROME_CANDIDATES.find(p => fs.existsSync(p)) || null;
-  } else if (opts.chrome.indexOf('/') !== -1) {
+  } else if (/[\\/]/.test(opts.chrome) || path.isAbsolute(opts.chrome)) {
     opts.chrome = path.resolve(opts.chrome);
     if (!fs.existsSync(opts.chrome)) throw new Error('--chrome 指定的文件不存在: ' + opts.chrome);
   }
   if (!opts.chrome) {
     throw new Error(
       '未找到 Chrome。请用 --chrome 指定路径，或设置环境变量 CHROME_PATH。\n' +
-      '常见路径: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+      '常见路径:\n' +
+      '  macOS    /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\n' +
+      '  Windows  C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
     );
   }
   if (stills && opts.at.length === 0) throw new Error('--at 没有有效的秒数');
@@ -205,9 +228,21 @@ function pad4(n) {
 async function animFrame(page) {
   await page.evaluate(function () {
     return new Promise(function (resolve) {
+      let done = false;
+      const finish = function () {
+        if (done) return;
+        done = true;
+        resolve();
+      };
+      /* 并行渲染时只有前台标签页会派发 rAF；后台页用短定时器代替。 */
+      if (document.hidden) {
+        setTimeout(finish, 32);
+        return;
+      }
       requestAnimationFrame(function () {
-        requestAnimationFrame(resolve);
+        requestAnimationFrame(finish);
       });
+      setTimeout(finish, 250);
     });
   });
 }
@@ -351,17 +386,10 @@ async function main() {
         '--disable-renderer-backgrounding',
         '--disable-backgrounding-occluded-windows',
         '--disable-features=Translate,BackForwardCache',
+        '--enable-webgl',
+        '--ignore-gpu-blocklist',
         `--window-size=${width},${height}`
       ]
-    });
-
-    const page = await browser.newPage();
-    page.setDefaultTimeout(0);
-    page.setDefaultNavigationTimeout(120000);
-    await page.setViewport({ width, height, deviceScaleFactor: opts.scale });
-    page.on('pageerror', err => process.stderr.write('  [pageerror] ' + err.message + '\n'));
-    page.on('console', msg => {
-      if (msg.type() === 'error') process.stderr.write('  [console] ' + msg.text() + '\n');
     });
 
     const q = new URLSearchParams({ render: '1' });
@@ -369,21 +397,34 @@ async function main() {
     if (opts.effectiveLook) q.set('look', opts.effectiveLook);
     if (opts.layout && opts.layout !== 'auto') q.set('layout', opts.layout);
     const url = `http://127.0.0.1:${port}/index.html?${q.toString()}`;
-    await page.goto(url, { waitUntil: 'load', timeout: 120000 });
-    await page.evaluate(() => window.ready);
-    const ready = await page.evaluate(() => window.__READY === true);
-    if (!ready) throw new Error('页面未就绪（window.__READY 未置位）');
+
+    const makePage = async () => {
+      const page = await browser.newPage();
+      page.setDefaultTimeout(0);
+      page.setDefaultNavigationTimeout(120000);
+      await page.setViewport({ width, height, deviceScaleFactor: opts.scale });
+      page.on('pageerror', err => process.stderr.write('  [pageerror] ' + err.message + '\n'));
+      page.on('console', msg => {
+        if (msg.type() === 'error') process.stderr.write('  [console] ' + msg.text() + '\n');
+      });
+      await page.goto(url, { waitUntil: 'load', timeout: 120000 });
+      await page.evaluate(() => window.ready);
+      const ready = await page.evaluate(() => window.__READY === true);
+      if (!ready) throw new Error('页面未就绪（window.__READY 未置位）');
+      return page;
+    };
 
     const shotOpts = {
       type: ext === 'jpg' ? 'jpeg' : 'png',
       optimizeForSpeed: true,
       captureBeyondViewport: false
     };
-    if (ext === 'jpg') shotOpts.quality = 95;
+    if (ext === 'jpg') shotOpts.quality = opts.jpegQuality;
 
     const t0 = Date.now();
 
     if (opts.stills) {
+      const page = await makePage();
       const times = opts.at.slice().sort((a, b) => a - b);
       for (let i = 0; i < times.length; i++) {
         const t = Math.max(0, Math.min(CONFIG.duration - 0.001, times[i]));
@@ -396,37 +437,56 @@ async function main() {
       const dt = (Date.now() - t0) / 1000;
       log(opts, `\n  完成：${times.length} 张抽帧，用时 ${fmtDuration(dt)}`);
     } else {
+      const workerCount = Math.max(1, Math.min(opts.workers, totalFrames));
+      const pages = await Promise.all(Array.from({ length: workerCount }, makePage));
+      if (workerCount > 1) log(opts, `  并行      ${workerCount} 页同时渲染`);
+
+      let nextFrame = startFrame;
       let done = 0;
       let skipped = 0;
-      for (let f = startFrame; f < endFrame; f++) {
-        if (stopped) break;
-        const t = f / opts.fps;
-        const file = path.join(opts.outDir, `frame_${pad4(f)}.${ext}`);
-        if (opts.resume && fs.existsSync(file) && fs.statSync(file).size > 1024) {
-          skipped++;
-          done++;
-          continue;
-        }
-        await page.evaluate(tt => window.pauseAt(tt), t);
-        await animFrame(page);
-        await page.screenshot(Object.assign({ path: file }, shotOpts));
-        done++;
+      const take = () => {
+        if (stopped) return null;
+        const f = nextFrame++;
+        return f < endFrame ? f : null;
+      };
 
-        if (!opts.quiet) {
-          const elapsed = (Date.now() - t0) / 1000;
-          const speed = done / Math.max(elapsed, 0.001);
-          const eta = (totalFrames - done) / Math.max(speed, 0.001);
-          const pct = (done / totalFrames * 100).toFixed(1);
-          const widthBar = 24;
-          const filled = Math.round(done / totalFrames * widthBar);
-          const bar = '█'.repeat(filled) + '·'.repeat(widthBar - filled);
-          const line = `  ${bar} ${pct.padStart(5)}%  ${done}/${totalFrames}  ${speed.toFixed(1)}fps  剩余 ${fmtDuration(eta)}`;
-          if (process.stdout.isTTY) {
-            process.stdout.write('\r' + line + '   ');
-          } else if (done === totalFrames || done % Math.max(1, Math.round(opts.fps * 5)) === 0) {
-            process.stdout.write(line.trim() + '\n');
-          }
+      let lastLog = 0;
+      const timer = setInterval(() => {
+        if (opts.quiet) return;
+        const elapsed = (Date.now() - t0) / 1000;
+        const speed = done / Math.max(elapsed, 0.001);
+        const eta = (totalFrames - done) / Math.max(speed, 0.001);
+        const pct = (done / totalFrames * 100).toFixed(1);
+        const line = `  ${done}/${totalFrames} (${pct}%)  ${speed.toFixed(1)}fps  剩余 ${fmtDuration(eta)}`;
+        if (process.stdout.isTTY) process.stdout.write('\r' + line + '   ');
+        else if (Date.now() - lastLog > 5000 || done === totalFrames) {
+          lastLog = Date.now();
+          process.stdout.write(line + '\n');
         }
+      }, 1000);
+
+      const work = async page => {
+        for (;;) {
+          const f = take();
+          if (f == null) return;
+          const t = f / opts.fps;
+          const file = path.join(opts.outDir, `frame_${pad4(f)}.${ext}`);
+          if (opts.resume && fs.existsSync(file) && fs.statSync(file).size > 1024) {
+            skipped++;
+            done++;
+            continue;
+          }
+          await page.evaluate(tt => window.pauseAt(tt), t);
+          await animFrame(page);
+          await page.screenshot(Object.assign({ path: file }, shotOpts));
+          done++;
+        }
+      };
+
+      try {
+        await Promise.all(pages.map(work));
+      } finally {
+        clearInterval(timer);
       }
       if (process.stdout.isTTY && !opts.quiet) process.stdout.write('\n');
 
@@ -434,15 +494,16 @@ async function main() {
       if (stopped) {
         log(opts, `  已中断：${done}/${totalFrames} 帧，用时 ${fmtDuration(dt)}。用 --resume 继续。`);
       } else {
-        log(opts, `  帧渲染完成：${done - skipped} 张新帧${skipped ? `，跳过 ${skipped} 张已有帧` : ''}，用时 ${fmtDuration(dt)}`);
+        log(opts, `  帧渲染完成：${done - skipped} 张新帧${skipped ? `，跳过 ${skipped} 张已有帧` : ''}，用时 ${fmtDuration(dt)}` + (workerCount > 1 ? `（${workerCount} 页并行）` : ''));
       }
 
       if (!stopped && opts.to >= CONFIG.duration && opts.from <= 0) {
+        const page = pages[0];
         const posterAt = await page.evaluate(() => {
           const c = window.FILM_CONFIG || {};
           const base = c.posterAt != null ? c.posterAt : 56.4;
           const dur = c.duration || 60;
-          /* posterAt 是相对分镜基准（base）的秒数；MV 的 base 与 duration 相等，
+          /* posterAt 是相对分镜基准（base）的秒数；MV / 剧集的 base 与 duration 相等，
              不能再按 60s 基准二次缩放，否则封面会飘到片尾。 */
           const baseDur = c.base || 60;
           return Math.max(0, Math.min(base * (dur / baseDur), dur - 0.1));

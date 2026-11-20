@@ -49,7 +49,10 @@ function log(msg) { if (!opts.quiet) console.log(msg); }
 
 function sayVoices() {
   const r = spawnSync('say', ['-v', '?'], { encoding: 'utf8' });
-  if (r.error) throw new Error('无法执行 say：' + r.error.message + '\n旁白功能需要 macOS。');
+  if (r.error) throw new Error('无法执行 say：' + r.error.message +
+    '\n旁白功能依赖 macOS 系统语音。Windows 上二选一：\n' +
+    '  1) 跳过旁白：编码时加 --no-voice，其余流程不受影响\n' +
+    '  2) 用任意 TTS 生成 assets/voiceover.wav（48kHz）后直接编码');
   const seen = new Set();
   return (r.stdout || '').split('\n').filter(Boolean).map(line => {
     const m = /^(.+?)\s{2,}([a-z]{2}_[A-Z]{2})/.exec(line);

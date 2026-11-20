@@ -13,7 +13,7 @@ html, body {
 body {
   display: grid;
   place-items: center;
-  font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
   color: #f3e3c6;
 }
 

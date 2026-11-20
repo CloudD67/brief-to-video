@@ -37,6 +37,11 @@ const CHROME_CANDIDATES = [
   '/Applications/Chromium.app/Contents/MacOS/Chromium',
   '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
   '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  (process.env.LOCALAPPDATA || '') + '/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   '/usr/bin/google-chrome',
   '/usr/bin/chromium',
   '/usr/bin/chromium-browser'
@@ -125,6 +130,11 @@ function checkChrome() {
     row('error', 'chrome', '指定路径不存在: ' + p);
     return null;
   }
+  /* Windows 的 chrome.exe 不认 --version（会直接开浏览器），只确认文件可用 */
+  if (process.platform === 'win32') {
+    row('ok', 'chrome', '已找到 ' + p);
+    return p;
+  }
   const r = spawnSync(p, ['--version'], { encoding: 'utf8', timeout: 15000 });
   if (r.error || r.status !== 0) {
     row('error', 'chrome', firstLine(r.stderr) || '无法执行 ' + p, '检查可执行权限');
@@ -152,7 +162,8 @@ function findFfmpeg() {
 function checkFfmpeg() {
   const p = findFfmpeg();
   if (!p) {
-    row('error', 'ffmpeg', '未找到 ffmpeg', 'npm install，或 brew install ffmpeg / 设置 FFMPEG_PATH');
+    row('error', 'ffmpeg', '未找到 ffmpeg',
+    'npm install，或 brew install ffmpeg（macOS）/ winget install Gyan.FFmpeg（Windows），或设置 FFMPEG_PATH');
     return;
   }
   const r = spawnSync(p, ['-hide_banner', '-version'], { encoding: 'utf8', timeout: 15000 });

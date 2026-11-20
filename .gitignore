@@ -7,3 +7,8 @@ qa/
 assets/template/assets/music.wav
 assets/template/assets/voiceover.wav
 assets/template/assets/voiceover.json
+assets/genres/*/assets/music.wav
+assets/genres/*/assets/voiceover.wav
+assets/genres/*/assets/subs.ass
+__pycache__/
+*.blend1

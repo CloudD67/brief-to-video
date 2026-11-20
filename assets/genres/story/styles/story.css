@@ -1,0 +1,333 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #04060a;
+  overflow: hidden;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+  color: #f2f4f8;
+  -webkit-font-smoothing: antialiased;
+}
+
+#stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #04060a;
+}
+
+#stage > canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 字幕区：横屏底部安全区之上 */
+#subs {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: var(--safe-bottom, 120px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.sub {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
+.sub b {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: rgba(230, 238, 248, 0.62);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.sub span {
+  display: block;
+  margin: 0 auto;
+  max-width: 88%;
+  font-size: 46px;
+  line-height: 1.42;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f6f8fc;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.88), 0 0 2px rgba(0, 0, 0, 0.9);
+}
+
+.sub-her b { color: #ffcf9e; }
+.sub-him b { color: #a9ccff; }
+.sub-owner b { color: #e8c98f; }
+.sub-narrator b { display: none; }
+.sub-narrator span {
+  font-size: 40px;
+  font-weight: 500;
+  color: #e7edf6;
+  letter-spacing: 0.08em;
+}
+
+/* 手机屏幕：横屏里按画面高度收，居中 */
+#phone {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24%;
+  aspect-ratio: 9 / 17.5;
+  translate: -50% -50%;
+  transform: translateY(20px) scale(0.97);
+  opacity: 0;
+  z-index: 14;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.phone-shell {
+  position: absolute;
+  inset: 0;
+  border-radius: 40px;
+  background: linear-gradient(170deg, #0e1622 0%, #070b12 58%, #05080d 100%);
+  border: 1px solid rgba(120, 170, 230, 0.18);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.65), 0 0 0 7px rgba(8, 12, 18, 0.9), 0 0 0 8px rgba(120, 160, 210, 0.12);
+  overflow: hidden;
+}
+
+.phone-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 88px;
+  background: linear-gradient(180deg, rgba(14, 22, 34, 0.98), rgba(14, 22, 34, 0.86));
+  border-bottom: 1px solid rgba(120, 170, 230, 0.1);
+}
+
+.phone-time {
+  position: absolute;
+  left: 28px;
+  top: 20px;
+  font-style: normal;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #cfdcec;
+}
+
+.phone-sig {
+  position: absolute;
+  right: 28px;
+  top: 26px;
+  width: 36px;
+  height: 10px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(150, 190, 235, 0.25) 0 70%, rgba(150, 190, 235, 0.7) 70%);
+  box-shadow: 0 0 12px rgba(120, 180, 255, 0.25);
+}
+
+.phone-head {
+  position: absolute;
+  top: 88px;
+  left: 0;
+  right: 0;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(120, 170, 230, 0.08);
+}
+
+.phone-head b {
+  font-size: 22px;
+  font-weight: 600;
+  color: #e8f0fb;
+}
+
+.phone-head em {
+  font-style: normal;
+  font-size: 14px;
+  color: rgba(130, 200, 255, 0.55);
+}
+
+.phone-body {
+  position: absolute;
+  top: 176px;
+  left: 24px;
+  right: 24px;
+  bottom: 78px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.msg {
+  max-width: 76%;
+  padding: 14px 17px;
+  font-size: 22px;
+  line-height: 1.42;
+  border-radius: 18px;
+}
+
+.msg.in {
+  align-self: flex-start;
+  background: #1c2634;
+  color: #e9f0fa;
+  border-bottom-left-radius: 6px;
+}
+
+.msg.out {
+  align-self: flex-end;
+  background: linear-gradient(160deg, #2b6fd6, #1c4b96);
+  color: #ffffff;
+  border-bottom-right-radius: 6px;
+  position: relative;
+  margin-top: 24px;
+}
+
+.msg.out i {
+  position: absolute;
+  right: 4px;
+  bottom: -22px;
+  font-style: normal;
+  font-size: 13px;
+  color: rgba(160, 185, 215, 0.5);
+}
+
+.msg.typing {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  background: rgba(30, 42, 58, 0.6);
+  opacity: 0;
+  transition: opacity 0.25s linear;
+}
+
+.msg.typing s {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #9fc0e6;
+  display: block;
+}
+
+.msg.typing em {
+  font-style: normal;
+  margin-left: 6px;
+  font-size: 14px;
+  color: rgba(160, 190, 225, 0.55);
+}
+
+.phone-home {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  width: 124px;
+  height: 4px;
+  margin-left: -62px;
+  border-radius: 4px;
+  background: rgba(180, 200, 225, 0.28);
+}
+
+/* 片名卡 */
+#titlecard {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 70% at 50% 46%, rgba(4, 7, 12, 0.18) 0%, rgba(4, 7, 12, 0.72) 62%, rgba(3, 5, 9, 0.94) 100%);
+}
+
+.card-inner {
+  will-change: transform;
+}
+
+.card-kicker {
+  display: block;
+  margin-bottom: 20px;
+  font-size: 22px;
+  letter-spacing: 0.5em;
+  color: rgba(255, 205, 160, 0.72);
+}
+
+.card-inner h1 {
+  margin: 0;
+  font-size: 124px;
+  line-height: 1.1;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: #fbf6ee;
+  text-shadow: 0 10px 50px rgba(255, 150, 90, 0.18), 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.card-en {
+  display: block;
+  margin-top: 20px;
+  font-size: 22px;
+  letter-spacing: 0.42em;
+  color: rgba(200, 218, 240, 0.55);
+}
+
+.card-hook {
+  display: block;
+  margin-top: 52px;
+  font-size: 28px;
+  letter-spacing: 0.08em;
+  color: rgba(225, 234, 246, 0.66);
+}
+
+/* 左上角集数标 */
+#hud {
+  position: absolute;
+  left: 4.5%;
+  top: 6%;
+  z-index: 10;
+  font-size: 20px;
+  letter-spacing: 0.28em;
+  color: rgba(214, 228, 248, 0.62);
+  opacity: 0;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 0 12px rgba(0, 0, 0, 0.85),
+    0 0 26px rgba(0, 0, 0, 0.6);
+}
+
+/* 全景里 HUD 可能压在霓虹招牌上，垫一层随 HUD 一起淡入淡出的暗晕 */
+#hud::before {
+  content: "";
+  position: absolute;
+  inset: -16px -30px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(58% 105% at 34% 50%, rgba(4, 7, 12, 0.66) 0%, rgba(4, 7, 12, 0.4) 48%, rgba(4, 7, 12, 0) 76%);
+}
+
+/* 上下压暗，保证字幕可读 */
+#stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(3, 5, 9, 0.22) 0%, rgba(3, 5, 9, 0) 22%, rgba(3, 5, 9, 0) 58%, rgba(3, 5, 9, 0.58) 100%);
+}

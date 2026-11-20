@@ -27,7 +27,7 @@ brief
 
 核心流程全部离线：不下载素材、不调用云服务；可选外部输入只有用户素材、用户自有/授权页面的抓帧、本地品牌字体和 macOS 系统语音。
 
-当前为 3.0.0：**先七问定向，再扩写，最后才分镜**——第 1 问用选择器定类型（宣传片 / MV），每类各 6 问，答案落进 `direction.json`，建工程时 `--intake` 预填进 `treatment.md` 方向锁，写稿不得与之矛盾（见 `intake.md`）；**扩写先于分镜，但宣传片与 MV 写两套稿**——宣传片按 `brief-expansion.md` 写 `treatment.md`（方向锁/世界/人物/序列/≥30 候选镜/≥4 色域，不设字数），MV 按 `mv-craft.md` §0 写更厚的 `treatment.md`（方向锁/背景/人物与关系/母题/故事弧/歌词段/≥32 候选镜删到 20–28/mood ≥3 档，不设字数），两种内容不互换；宣传片默认**空白起步**、每支片现场写（`--demo` 才复制七场示例工程）。硬件/实体产品走**世界语法**（`hardware-promo-grammar.md`：多空间、多色域、屏幕 ≤30%，`js/product-kit.js` 提供真实空间里的电脑/桌面道具），软件/AI/平台类产品片走**真屏语法**（全出血真实界面 + `screen-kit` 零件库 + 间幕卡/胶囊字幕时序 + 桌面拼贴结尾，见 `product-film-grammar.md`）。规则不再只写在文档里：`check-treatment.js` 查 treatment 结构配额，`check-project.js` 查 `config.grammar` / `config.shots` 分镜契约（空间数、屏幕占比、微距/人迹、相邻镜重复），MV `test/unit.test.js` 查 20–28 镜/2–3 秒/四段歌词/mood 分布，`tools/gate.js` 把它们串成交付门禁（`--pre` 写作门禁、全门禁再叠 `repair --strict`）。15 个 look、8 个确定性视觉引擎、用户选择器式审美选择、全片连续运镜、运动连续性 + 色彩分布 QA、真实素材抓帧、SSIM 视觉回归、交付前自检修复（`npm run repair`）与 GitHub Actions CI；MV 为原生 1920×1080 层叠剪纸叙事模板（纸层场景、镜头制分镜、画布底部歌词、歌曲/歌词接入、确定性 QA + 同款 repair，默认 1080p、4K 矢量重画）。第三方设计方法的来源与许可见根目录 `ATTRIBUTIONS.md`；设计 DNA 的可实现版本见 `references/design-dna.md`。
+当前为 3.8.0：**先七问定向，再扩写，最后才分镜**——第 1 问用选择器定类型（宣传片 / MV / 3D 短剧），每类各 6 问，答案落进 `direction.json`，建工程时 `--intake` 预填进 `treatment.md` 方向锁，写稿不得与之矛盾（见 `intake.md`）；**扩写先于分镜，但宣传片与 MV 写两套稿**——宣传片按 `brief-expansion.md` 写 `treatment.md`（方向锁/世界/人物/序列/≥30 候选镜/≥4 色域，不设字数），MV 按 `mv-craft.md` §0 写更厚的 `treatment.md`（方向锁/背景/人物与关系/母题/故事弧/歌词段/≥32 候选镜删到 20–28/mood ≥3 档，不设字数），两种内容不互换；宣传片默认**空白起步**、每支片现场写（`--demo` 才复制七场示例工程）。硬件/实体产品走**世界语法**（`hardware-promo-grammar.md`：多空间、多色域、屏幕镜头只做诊断，`js/product-kit.js` 提供真实空间里的电脑/桌面道具），软件/AI/平台类产品片走**真屏语法**（全出血真实界面 + `screen-kit` 零件库 + 间幕卡/胶囊字幕时序 + 桌面拼贴结尾，见 `product-film-grammar.md`）。规则不再只写在文档里：`check-treatment.js` 查 treatment 结构配额，`check-project.js` 查 `config.grammar` / `config.shots` 分镜契约（空间数、微距/人迹、相邻镜重复；屏幕占比仅警告），MV `test/unit.test.js` 查 20–28 镜/2–3 秒/四段歌词/mood 分布，`tools/gate.js` 把它们串成交付门禁（`--pre` 写作门禁、全门禁再叠 `repair --strict`）。15 个 look、8 个确定性视觉引擎、用户选择器式审美选择、全片连续运镜、运动连续性 + 色彩分布 QA、真实素材抓帧、SSIM 视觉回归、交付前自检修复（`npm run repair`）与 GitHub Actions CI；MV 为原生 1920×1080 层叠剪纸叙事模板（纸层场景、镜头制分镜、画布底部歌词、歌曲/歌词接入、确定性 QA + 同款 repair，默认 1080p、4K 矢量重画）；3D 短剧为原生 1920×1080 横屏 Three.js 布景 + 剪纸人物对白戏模板（`references/story-drama.md`：cast/lines 剧本契约、绝对秒数分镜、多角色配音、`validate-story.js` 契约校验与 `test/story.test.js`，只做 1080p 横屏、不做竖屏）。macOS/Windows 的编码器、解码器、采集与 Blender 设备按平台分成两套独立实现（§2.1 / §2.2：VideoToolbox / NVENC·QSV·AMF、videotoolbox / d3d11va、Metal / OptiX·CUDA·HIP），渲染采集可用 `--fast`，长片编码默认走硬件。第三方设计方法的来源与许可见根目录 `ATTRIBUTIONS.md`；设计 DNA 的可实现版本见 `references/design-dna.md`。
 
 ## 2. 环境要求
 
@@ -35,10 +35,84 @@ brief
 - npm 可安装依赖。
 - 系统 Chrome / Chromium / Edge 任选其一：
   - macOS：`/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`
+  - Windows：`C:\Program Files\Google\Chrome\Application\chrome.exe`；Edge 同理在 `Microsoft\Edge\Application\msedge.exe`；x86 版装在 `Program Files (x86)`，便携版在 `%LOCALAPPDATA%`
   - Linux：`/usr/bin/google-chrome` 或 `/usr/bin/chromium`
-  - 其他位置：`CHROME_PATH=/path/to/chrome` 或 `node render.js --chrome ...`
+  - 其他位置：`CHROME_PATH` 或 `node render.js --chrome ...`
 - FFmpeg 由 `@ffmpeg-installer/ffmpeg` 提供，无需系统安装。
 - `qa-stills.js` / `grab.js` 在 macOS 上用 `sips` 缩图；其他平台保留原尺寸 JPG。
+- Blender（只有 CG 引擎需要）：`scripts/install-blender.sh`（macOS）或 `scripts/install-blender.ps1`（Windows）。
+
+### 2.1 macOS
+
+macOS 的编码器、解码器、采集与 Blender 设备选择各自独立实现，不与其他平台共用参数。
+
+**编码器（VideoToolbox）**
+
+- `encode.js --hw auto` 直接启用 `h264_videotoolbox`；`--hw hevc` 用 `hevc_videotoolbox`（自动带 `hvc1` 标签）。
+- `--hw-quality` 映射 `-q:v`（1–100，默认 65 约等于 x264 crf18）。
+- 1080p 代理固定 `h264_videotoolbox` q70；主编码器是软件 x264 时代理才用 x264 crf20。
+- `--hw off` 强制 libx264；`--hw h264` 在本机没有 VideoToolbox 时直接报错。
+
+**解码器**
+
+- `tools/prep-media.js`（用户视频抽帧）与 `tools/grab.js`（成片抓帧）都加 `-hwaccel videotoolbox`；解码失败自动回退软件解码。
+- 平台分支集中在 `hwDecodeArgs()`，macOS 只走 VideoToolbox，不读取 Windows 参数。
+
+**渲染采集**
+
+- `node render.js --fast`：默认切到 jpg q92，跳过 PNG 压缩；`--jpeg-quality <n>` 单独调质量（默认 95）。
+- `--workers 3–4` 开多页并行（最多 8），长片采集最有效的加速手段。
+- 截图固定 `optimizeForSpeed: true`、`captureBeyondViewport: false`。
+
+**Blender / CG**
+
+- `tools/cg-render.js --device auto`：CYCLES 选 Metal（EEVEE 走自带 GPU 管线，不受影响）；找不到 Metal 安静回落 CPU。
+- `--device cpu` 强制 CPU；`--device gpu` 要求 GPU 但本机没有时仍回落到 CPU，并在日志打印 `CG_DEVICE cpu`。
+
+**其他**
+
+- 安装 skill：`scripts/install.sh`；环境变量：`export CHROME_PATH=...`。
+- 旁白 TTS：系统 `say` 按字幕时间轴合成。
+- 字幕字体：苹方 `PingFang SC`（`CG_SUB_FONT` 可覆盖）。
+- 图片缩图：`sips`；便携 Blender：`scripts/install-blender.sh`；CG 素材：`scripts/fetch-cg-assets.sh`。
+- 后台跑长渲染：`node render.js ... &`。
+
+### 2.2 Windows
+
+Windows 从编码器到解码器都是独立分支：`windowsEncoder()` 只做 NVENC → QSV → AMF，`darwinEncoder()` 的 VideoToolbox 参数不会进入这条路径。
+
+**编码器（NVENC / QSV / AMF）**
+
+- `encode.js --hw auto` 依次探测 `h264_nvenc` → `h264_qsv` → `h264_amf`；`--hw hevc` 换 hevc 版本。
+- 每个候选先跑一帧 `lavfi` 试编码（`encoderWorks()`），确认硬件真的可用——Windows 的 ffmpeg 会把三种编码器全列出来，机器上却未必有对应硬件。
+- `--hw-quality` 映射 cq（`cq = clamp(round(30 − 质量×0.1), 16, 32)`，默认 65 → cq 24）。
+- 1080p 代理沿用同一硬件编码器参数；全不可用时回退 libx264，并在日志标注原因。
+- 显式 `--hw h264|hevc` 但三种硬件编码都不可用时直接报错，提示检查显卡驱动或 `--hw off`。
+
+**解码器**
+
+- `prep-media.js` 与 `grab.js` 用 `-hwaccel d3d11va`；失败自动回退软件解码，并打印回退提示。
+- 平台分支同样集中在 `hwDecodeArgs()`，Windows 只走 D3D11VA。
+
+**渲染采集**
+
+- `--fast` / `--jpeg-quality` / `--workers` 与 macOS 同一套 CLI，但实现路径独立，不与 macOS 的 Chrome 启动参数混用。
+- Chrome/Edge 路径：`C:\Program Files\Google\Chrome\Application\chrome.exe`、`Microsoft\Edge\Application\msedge.exe`；x86 在 `Program Files (x86)`，便携版在 `%LOCALAPPDATA%`。
+
+**Blender / CG**
+
+- `tools/cg-render.js --device auto`：CYCLES 依次尝试 OptiX → CUDA → HIP（NVIDIA 用 OptiX/CUDA，AMD 用 HIP）；都没有时回落 CPU。
+- `--device cpu` 强制 CPU；日志打印 `CG_DEVICE OptiX gpus=1` 之类的结果。
+
+**其他**
+
+- 安装 skill：`powershell -ExecutionPolicy Bypass -File scripts\install.ps1`；环境变量：`set CHROME_PATH=...`（当前窗口）/ `setx` 永久。
+- 旁白 TTS：不支持系统 `say`；外部生成 `assets/voiceover.wav`，或编码时 `--no-voice`。
+- 字幕字体：微软雅黑 `Microsoft YaHei`（`CG_SUB_FONT` 可覆盖）。
+- 图片缩图：跳过；便携 Blender：`scripts\install-blender.ps1`（或官方安装 + `BLENDER_BIN`）；CG 素材：`scripts\fetch-cg-assets.ps1`。
+- 后台跑长渲染：`Start-Process -NoNewWindow node "render.js" -ArgumentList "..."`。
+
+Windows 分支按 Node/ffmpeg 的跨平台行为编写并做了路径转义，但发布前没有在真实 Windows 机器上跑过全流程；首次使用按 `npm run doctor` 的报告逐项确认。
 
 安装：
 
@@ -210,6 +284,8 @@ node render.js --from 0 --to 12      # 只渲前 12 秒
 node render.js --at 1.5,33,58.3      # 抽帧到 stills/
 node render.js --format jpg --at 58.3
 node render.js --resume              # 跳过已存在且参数一致的帧
+node render.js --workers 3           # 并行：3 个页面同时逐帧（长片提速）
+node tools/render-chunks.js . --chunk 60 --workers 3 --format jpg --encode   # 分块（90s+）
 node render.js --chrome /path/to/chrome --headed
 ```
 
@@ -223,9 +299,12 @@ node render.js --chrome /path/to/chrome --headed
 | `--fps` | config.fps | 与 config.fps 不一致时会警告（encode 默认按 config.fps，需同时传 `--fps`） |
 | `--from` / `--to` | 0 / duration | 时间段（秒） |
 | `--format` | png | `png` / `jpg` |
+| `--fast` | 否 | 快速采集：未显式指定时切到 jpg q92（迭代/审片用，交付仍按需重渲 png） |
+| `--jpeg-quality` | 95（`--fast` 时 92） | jpg 质量 1–100 |
 | `--at` | — | 逗号分隔秒数，抽帧模式 |
 | `--out` | `frames/` / `stills/` | 输出目录 |
 | `--resume` | 否 | 断点续渲；参数（含 look/layout/style）不一致会报错 |
+| `--workers` | 1 | 并行页数（最多 8）；长片建议 3–4，帧号仍连续 |
 | `--chrome` | 自动探测 | Chrome 路径 |
 | `--port` | 0 | 本地服务端口，0 = 随机 |
 | `--headed` | 否 | 显示浏览器（调试） |
@@ -241,6 +320,33 @@ node render.js --chrome /path/to/chrome --headed
 - 日志会打印 `风格`、`Look`（自动时附 confidence 与命中词）与版式/动效。
 - `--resume` 的 manifest 记录 style/look/layout，「已有帧 + 本次」任一参数不一致就报错，避免混主题的帧进同一条成片。
 - 开渲前按 `分辨率 × 剩余帧数 × 8.5MB（PNG）/1.5MB（JPG）` 估算磁盘；可用 < 预估 60% 直接失败，< 130% 警告。`--resume` 只算缺失帧。
+- 长片（≥90s）用 `--workers 3` 或 `tools/render-chunks.js`：分块按 `--chunk` 秒切段、块内并行、帧号连续，`--encode` 一条龙；细节与验收见 `film-tech.md` §3。
+
+### 5.2b CG 渲染 `tools/cg-render.js`（story · Blender）
+
+`config.engine = 'cg'` 时 `render.js` 自动转到这里；帧名同样从 `frame_0000.png` 起，`encode.js` 不用改。完整方法与构件见 `cg-pipeline.md`。
+
+```bash
+scripts/install-blender.sh               # 便携 Blender 5.3 → ~/.qoder/tools/blender（Windows 用 scripts\install-blender.ps1）
+scripts/fetch-cg-assets.sh               # Poly Haven CC0 HDRI/PBR → ~/.qoder/tools/cg-library（Windows 用 scripts\fetch-cg-assets.ps1）
+node tools/cg-render.js --at 1,3.5 --samples 8   # 抽帧到 stills/
+node tools/cg-render.js --samples 24 --poster 4.2
+node tools/cg-render.js --engine CYCLES --samples 64 --from 0 --to 5
+node tools/cg-render.js --resume         # 跳过已存在且 >1KB 的帧
+```
+
+| 参数 | 默认 | 说明 |
+|---|---|---|
+| `--file` | config.cg.file（`cg/film.py`） | 场景脚本 |
+| `--samples` | config.cg.samples（24） | EEVEE TAA / Cycles 采样 |
+| `--engine` | config.cg.engine（EEVEE） | `EEVEE` / `CYCLES` |
+| `--device` | config.cg.device（auto） | CYCLES 设备 `auto` / `gpu` / `cpu`；macOS 选 Metal，Windows 依次 OptiX → CUDA → HIP（见 §2.1 / §2.2） |
+| `--poster <sec>` | 无 | 全片渲完追加 `out/poster.png` |
+| `--blender` | 自动查找 | 也可用 `BLENDER_BIN` 或 `config.cg.blender` |
+
+- 首帧要编译着色器，比稳定帧慢很多；之后按 `s/帧` 打印 ETA。
+- Blender 在 `--background` 下 Python 报错也可能退出码 0，桥接层以**实际出帧数**为准判失败。
+- 素材缺省路径 `~/.qoder/tools/cg-library`，可用 `CG_ASSETS` 覆盖。
 
 ### 5.3 编码 `encode.js`
 
@@ -257,8 +363,10 @@ node encode.js --muted
 | 参数 | 默认 | 说明 |
 |---|---|---|
 | `--fps` | config.fps | 输入帧率 |
-| `--crf` | 18 | x264 质量，越小越清晰、越大文件越大 |
-| `--preset` | medium | ultrafast…veryslow |
+| `--crf` | 18 | 软编 x264 质量，越小越清晰、越大文件越大 |
+| `--preset` | medium | 软编 x264 preset：ultrafast…veryslow |
+| `--hw` | auto | `auto` / `off` / `h264` / `hevc`；两个平台各自实现，参数互不共用（macOS 见 §2.1，Windows 见 §2.2） |
+| `--hw-quality` | 65 | 硬件编码质量 1–100，越高越清晰（映射规则见对应平台小节） |
 | `--frames` | `frames/` | 帧目录 |
 | `--out` | `out/` | 输出目录 |
 | `--music` | `assets/music.wav` | 不存在则输出无声 |
@@ -272,7 +380,7 @@ node encode.js --muted
 
 编码规格：
 
-- 视频：libx264、yuv420p、bt709、`-movflags +faststart`。
+- 视频：默认 `auto`，按平台走各自的硬件编码实现（§2.1 macOS / §2.2 Windows）；两边都不可用时回退 libx264。输出统一 yuv420p、bt709、`-movflags +faststart`。所有赛道（template / mv / nocturne / story / demo-editorial）的 `encode.js` 都支持 `--hw` 与 `--hw-quality`。
 - 音频：AAC 192k、48kHz、立体声；`atrim` 对齐视频时长；2s 淡入淡出（短于 8s 时自动缩短）。音乐与旁白都先 `aformat=channel_layouts=stereo` 再混，避免 `sidechaincompress` 因声道不一致失败。
 - 混音：有旁白时音乐默认降到 0.40，并走 `sidechaincompress`（threshold 0.05 / ratio 6 / attack 25ms / release 400ms）闪避；最后 `amix normalize=0`，不二次衰减。
 - 帧连续性检查：缺帧直接报错，提示 `--resume`。
@@ -426,7 +534,7 @@ node tools/grab.js out/final.mp4 3.0 15.0 27.0
 `check-project.js` 检查：
 
 - config 字段合法、宽高为偶数、`posterAt` 落在 60s 基准内、`look` / `style` / `layout` 指向存在的 look/主题/版式、`tcFps` 合法。
-- 分镜契约：`config.grammar` 为 `screen` / `world` / `auto`；非 auto 时 `config.shots` 必须非空且每镜有 `at/dur/space/frame/subject`；world 查空间数（60s ≥4 / 30s ≥3）、屏幕 ≤30%、微距 ≥2、人迹 ≥2；screen 查屏幕 ≥50%；相邻两镜不得同空间 + 同主体 + 同景别。
+- 分镜契约：`config.grammar` 为 `screen` / `world` / `auto`；非 auto 时 `config.shots` 必须非空且每镜有 `at/dur/space/frame/subject`；world 查空间数（60s ≥4 / 30s ≥3）、微距 ≥2、人迹 ≥2；screen 语法同样写清空间与主体；屏幕占比只做诊断（world >30% / screen <50% 只警告，不拦交付）；相邻两镜不得同空间 + 同主体 + 同景别。
 - look 契约：15 个 look 的主题 CSS、版式、动效都存在；keywords 非空；`styles/layouts.css` 含 `html[data-layout="…"]`、`portrait.css` 存在；`brief` 为空时警告（auto 只能靠片名/标语）。
 - 主题契约：`tokens.css` 必须定义全部根令牌（纸/墨/强调/深色/字体/字幕/插画/18 个帧色）；每个非 letterpress 主题必须覆盖 `--paper/--paper-2/--paper-3/--ink/--ink-2/--mute/--faint/--accent/--dark/--on-dark`；必须有 `html[data-style="<name>"]` 选择器；CSS 花括号必须平衡；只覆盖部分帧色会警告。
 - WCAG 对比度（每个主题按继承后的有效色计算）：`--ink/--paper ≥ 10`、`--ink-2/--paper-2 ≥ 7`、`--sub-color/--paper ≥ 7`、`--on-dark/--dark ≥ 10`、`--accent/--paper ≥ 3`、`--mute/--paper ≥ 4.5`；不足直接报错。
@@ -556,7 +664,7 @@ MV 交付把 `Look` 行换成 `叙事：paper-story · 24 镜 · mood 3 档 · �
 
 - 画布支持 16:9（1920×1080）与 9:16（1080×1920）两套坐标系；其他比例不做保证，非标准尺寸 `check` 会告警。
 - 主题/look 只换表现与骨架，不改变场景里的文案结构；需要全新构图时在 `layouts.css` 增版式或新写场景。
-- 画面主体仍是排版 + SVG 插画 + 伪 UI + Canvas 氛围引擎（网点/双色叠印/散景/尘埃/极光/流线/扫描/轨道）；真实照片/视频通过 `assets/media/` 接入，但不做抠像、跟踪、3D、粒子模拟。
+- 画面主体仍是排版 + SVG 插画 + 伪 UI + Canvas 氛围引擎（网点/双色叠印/散景/尘埃/极光/流线/扫描/轨道）；真实照片/视频通过 `assets/media/` 接入。需要真实空间时可接 Three.js 套件（`three-kit` / `three-sets`，见 `film-tech.md`）与 2D VFX 层；但不做抠像、跟踪与外部 3D 资产导入。
 - 网页抓帧只适用于用户自有或已明确授权的页面；不提供第三方站点采集、登录绕过或反爬规避。交付时需注明素材来源与授权。
 - 引擎是确定性背景层：同一时刻永远同一帧，但不能替代构图；遮住引擎画面就散，说明版式没做完。
 - 视觉回归基线（`qa/baseline/`）只存在本地；换机器或改版后先目检抽帧，再用 `qa-regress --update` 重建基线。

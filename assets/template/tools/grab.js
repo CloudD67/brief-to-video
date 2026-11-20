@@ -56,16 +56,27 @@ const ffmpeg = findFfmpeg();
 const outDir = path.resolve(process.cwd(), opts.out);
 fs.mkdirSync(outDir, { recursive: true });
 
+/* macOS 走 VideoToolbox、Windows 走 D3D11VA 解码；失败自动回退软件解码。 */
+function hwDecodeArgs() {
+  if (process.platform === 'darwin') return ['-hwaccel', 'videotoolbox'];
+  if (process.platform === 'win32') return ['-hwaccel', 'd3d11va'];
+  return [];
+}
+
 times.slice().sort((a, b) => a - b).forEach(t => {
   const file = path.join(outDir, 'grab_' + t.toFixed(2) + '.jpg');
-  const r = spawnSync(ffmpeg, [
+  const grab = extra => spawnSync(ffmpeg, [
     '-y', '-hide_banner', '-loglevel', 'error',
     '-ss', t.toFixed(3),
+    ...extra,
     '-i', video,
     '-frames:v', '1',
     '-q:v', String(opts.quality),
     file
   ], { encoding: 'utf8' });
+  const hw = hwDecodeArgs();
+  let r = grab(hw);
+  if (r.status !== 0 && hw.length) r = grab([]);
   if (r.status !== 0 || !fs.existsSync(file) || fs.statSync(file).size < 512) {
     console.error('  ✗ ' + t.toFixed(2) + 's  ' + (r.stderr || '未生成文件').trim());
     return;

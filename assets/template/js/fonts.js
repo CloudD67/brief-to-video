@@ -22,7 +22,7 @@
       document.fonts.add(loaded);
       document.documentElement.style.setProperty(
         '--font-sans',
-        '"' + c.fontFamily + '", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif'
+        '"' + c.fontFamily + '", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif'
       );
       return true;
     })

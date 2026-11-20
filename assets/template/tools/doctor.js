@@ -3,7 +3,7 @@
  * 环境体检：Node / 依赖 / Chrome / ffmpeg / 磁盘 / 主题 / 工具链。
  * 渲染前先跑一遍，把「跑到一半才失败」的问题提前暴露。
  *
- *   node doctor.js [project-dir] [--style swiss] [--chrome <path>] [--json qa/doctor.json]
+ *   node doctor.js [project-dir] [--style swiss] [--chrome <path>] [--scale 1|2] [--json qa/doctor.json]
  */
 'use strict';
 
@@ -13,13 +13,14 @@ const { spawnSync } = require('child_process');
 
 const args = process.argv.slice(2);
 let root = '.';
-const opts = { json: null, chrome: null, style: null };
+const opts = { json: null, chrome: null, style: null, scale: null };
 
 for (let i = 0; i < args.length; i++) {
   const a = args[i];
   if (a === '--json') opts.json = args[++i];
   else if (a === '--chrome') opts.chrome = args[++i];
   else if (a === '--style') opts.style = args[++i];
+  else if (a === '--scale') opts.scale = Number(args[++i]);
   else if (a.startsWith('--')) throw new Error('未知参数: ' + a);
   else root = a;
 }
@@ -37,6 +38,11 @@ const CHROME_CANDIDATES = [
   '/Applications/Chromium.app/Contents/MacOS/Chromium',
   '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
   '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  (process.env.LOCALAPPDATA || '') + '/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   '/usr/bin/google-chrome',
   '/usr/bin/chromium',
   '/usr/bin/chromium-browser'
@@ -47,7 +53,7 @@ const REQUIRED_TOOLS = [
   'tools/check-project.js', 'tools/qa-layout.js', 'tools/qa-timing.js',
   'tools/qa-stills.js', 'tools/qa-all.js', 'tools/doctor.js',
   'tools/grab.js', 'tools/style-gallery.js', 'tools/pick-look.js', 'tools/look-gallery.js',
-  'tools/voiceover.js', 'tools/prep-media.js',
+  'tools/voiceover.js', 'tools/prep-media.js', 'tools/render-chunks.js',
   'js/looks.js', 'js/media.js', 'styles/layouts.css', 'styles/portrait.css'
 ];
 
@@ -125,6 +131,11 @@ function checkChrome() {
     row('error', 'chrome', '指定路径不存在: ' + p);
     return null;
   }
+  /* Windows 的 chrome.exe 不认 --version（会直接开浏览器），只确认文件可用 */
+  if (process.platform === 'win32') {
+    row('ok', 'chrome', '已找到 ' + p);
+    return p;
+  }
   const r = spawnSync(p, ['--version'], { encoding: 'utf8', timeout: 15000 });
   if (r.error || r.status !== 0) {
     row('error', 'chrome', firstLine(r.stderr) || '无法执行 ' + p, '检查可执行权限');
@@ -152,7 +163,8 @@ function findFfmpeg() {
 function checkFfmpeg() {
   const p = findFfmpeg();
   if (!p) {
-    row('error', 'ffmpeg', '未找到 ffmpeg', 'npm install，或 brew install ffmpeg / 设置 FFMPEG_PATH');
+    row('error', 'ffmpeg', '未找到 ffmpeg',
+    'npm install，或 brew install ffmpeg（macOS）/ winget install Gyan.FFmpeg（Windows），或设置 FFMPEG_PATH');
     return;
   }
   const r = spawnSync(p, ['-hide_banner', '-version'], { encoding: 'utf8', timeout: 15000 });
@@ -177,8 +189,9 @@ function checkDisk() {
     row('warn', '磁盘', '无法读取磁盘空间: ' + e.message);
     return;
   }
-  const width = CONFIG.width * 2;
-  const height = CONFIG.height * 2;
+  const scale = opts.scale > 0 ? opts.scale : (Number(CONFIG.renderScale) > 0 ? Number(CONFIG.renderScale) : 1);
+  const width = CONFIG.width * scale;
+  const height = CONFIG.height * scale;
   const frames = Math.round((CONFIG.duration || 60) * (CONFIG.fps || 30));
   const perFrame = 8.5 * 1024 * 1024 * ((width * height) / (3840 * 2160));
   const need = frames * perFrame;
@@ -187,6 +200,41 @@ function checkDisk() {
   if (free < need * 0.6) row('error', '磁盘', detail, '清理空间，或降低 --scale / 片长，或先清空 frames/');
   else if (free < need * 1.3) row('warn', '磁盘', detail, '空间偏紧；frames/ 会一直涨，渲完记得清理旧帧');
   else row('ok', '磁盘', detail);
+}
+
+function checkAccel() {
+  const p = findFfmpeg();
+  if (!p) return;
+  const enc = spawnSync(p, ['-hide_banner', '-encoders'], { encoding: 'utf8' });
+  const encText = (enc.stdout || '') + (enc.stderr || '');
+  if (process.platform === 'win32') {
+    /* ffmpeg 会列出所有厂商编码器，用一帧测试确认硬件真的可用 */
+    const works = [];
+    for (const [label, name] of [['NVENC', 'h264_nvenc'], ['QSV', 'h264_qsv'], ['AMF', 'h264_amf']]) {
+      if (!encText.includes(name)) continue;
+      const test = spawnSync(p, ['-hide_banner', '-loglevel', 'error',
+        '-f', 'lavfi', '-i', 'color=c=black:s=256x144:d=0.1', '-frames:v', '1',
+        '-c:v', name, '-f', 'null', '-'], { encoding: 'utf8', timeout: 20000 });
+      if (test.status === 0) works.push(label);
+    }
+    if (works.length) row('ok', '加速', 'Windows 硬件编码可用 ' + works.join(' / '));
+    else row('warn', '加速', '没有可用的 NVENC / QSV / AMF', 'encode.js 会回退 libx264；先更新显卡驱动');
+    return;
+  }
+  if (process.platform !== 'darwin') {
+    row('ok', '加速', '非 macOS / Windows；硬件编码按 ffmpeg 默认');
+    return;
+  }
+  const h264 = /h264_videotoolbox/.test(encText);
+  const hevc = /hevc_videotoolbox/.test(encText);
+  const hw = spawnSync(p, ['-hide_banner', '-hwaccels'], { encoding: 'utf8' });
+  const decode = /videotoolbox/.test((hw.stdout || '') + (hw.stderr || ''));
+  const encLabel = [h264 ? 'H.264' : null, hevc ? 'HEVC' : null].filter(Boolean).join(' / ');
+  if (h264 || hevc) {
+    row('ok', '加速', 'VideoToolbox 编码 ' + encLabel + (decode ? ' · 解码可用' : ''));
+  } else {
+    row('warn', '加速', '未发现 VideoToolbox 编码器', 'encode.js 会回退 libx264；换一份带 videotoolbox 的 ffmpeg');
+  }
 }
 
 function checkTheme() {
@@ -230,6 +278,7 @@ function main() {
   checkDeps();
   checkChrome();
   checkFfmpeg();
+  checkAccel();
   checkDisk();
   checkTheme();
   checkMusic();

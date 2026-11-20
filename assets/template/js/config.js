@@ -30,10 +30,10 @@
     motion: 'auto',
 
     // 镜头语法：screen = 软件/AI/平台的真屏语法；world = 硬件/空间/人物的世界语法
-    // auto 由 new-film.js 按七问第 2 问写入；check-project 会按它查屏幕占比与空间数
+    // auto 由 new-film.js 按七问第 2 问写入；check-project 会按它查空间数与屏幕镜头（屏幕只提示）
     grammar: 'auto',
 
-    // 分镜表契约（写进剧本后再填，check-project 用它查覆盖、屏幕占比与相邻镜差异）
+    // 分镜表契约（写进剧本后再填，check-project 用它查覆盖与相邻镜差异，屏幕占比只提示）
     // [{ id, at, dur, space, frame, subject, screen?, note? }]
     shots: [],
 

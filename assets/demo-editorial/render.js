@@ -25,6 +25,8 @@ const DEFAULTS = {
   from: 0,
   to: CONFIG.duration || 60,
   format: 'png',
+  jpegQuality: 95,
+  fast: false,
   out: null,
   at: null,
   style: null,
@@ -43,6 +45,11 @@ const CHROME_CANDIDATES = [
   '/Applications/Chromium.app/Contents/MacOS/Chromium',
   '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
   '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  (process.env.LOCALAPPDATA || '') + '/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   '/usr/bin/google-chrome',
   '/usr/bin/chromium',
   '/usr/bin/chromium-browser'
@@ -58,6 +65,8 @@ function usage() {
   --from <sec>     起始时间（默认 0）
   --to <sec>       结束时间（默认 ${CONFIG.duration}）
   --format <fmt>   png | jpg（默认 png）
+  --fast           快速采集：默认切到 jpg q92（迭代/审片用；交付按需重渲 png）
+  --jpeg-quality <n> jpg 质量 1-100（默认 95，--fast 时 92）
   --at <list>      抽帧模式：逗号分隔的秒数，例如 1.5,15,33
   --out <dir>      输出目录（默认 frames/，抽帧为 stills/）
   --look <id>      指定 look（主题+版式+动效）；auto = 按 brief 自动（默认）
@@ -97,7 +106,9 @@ function parseArgs(argv) {
       case '--fps': opts.fps = Number(next()); break;
       case '--from': opts.from = Number(next()); break;
       case '--to': opts.to = Number(next()); break;
-      case '--format': opts.format = String(next()).toLowerCase(); break;
+      case '--format': opts.format = String(next()).toLowerCase(); opts.formatExplicit = true; break;
+      case '--fast': opts.fast = true; break;
+      case '--jpeg-quality': opts.jpegQuality = Number(next()); opts.jpegQualityExplicit = true; break;
       case '--at': opts.at = String(next()).split(',').map(Number).filter(n => Number.isFinite(n)); break;
       case '--style': opts.style = String(next()); break;
       case '--look': opts.look = String(next()); break;
@@ -120,7 +131,12 @@ function parseArgs(argv) {
   if (opts.style && !/^[a-z0-9-]+$/.test(opts.style)) throw new Error('--style 只能是小写字母、数字和连字符');
   if (opts.look && opts.look !== 'auto' && !/^[a-z0-9-]+$/.test(opts.look)) throw new Error('--look 只能是小写字母、数字和连字符');
   if (opts.layout && opts.layout !== 'auto' && !/^[a-z0-9-]+$/.test(opts.layout)) throw new Error('--layout 只能是小写字母、数字和连字符');
+  if (!(opts.jpegQuality >= 1 && opts.jpegQuality <= 100)) throw new Error('--jpeg-quality 必须在 1-100 之间');
   opsCheck(opts);
+  if (opts.fast) {
+    if (!opts.formatExplicit) opts.format = 'jpg';
+    if (!opts.jpegQualityExplicit) opts.jpegQuality = 92;
+  }
   return opts;
 }
 
@@ -174,14 +190,16 @@ function opsCheck(opts) {
   }
   if (!opts.chrome) {
     opts.chrome = process.env.CHROME_PATH || CHROME_CANDIDATES.find(p => fs.existsSync(p)) || null;
-  } else if (opts.chrome.indexOf('/') !== -1) {
+  } else if (/[\\/]/.test(opts.chrome) || path.isAbsolute(opts.chrome)) {
     opts.chrome = path.resolve(opts.chrome);
     if (!fs.existsSync(opts.chrome)) throw new Error('--chrome 指定的文件不存在: ' + opts.chrome);
   }
   if (!opts.chrome) {
     throw new Error(
       '未找到 Chrome。请用 --chrome 指定路径，或设置环境变量 CHROME_PATH。\n' +
-      '常见路径: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+      '常见路径:\n' +
+      '  macOS    /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\n' +
+      '  Windows  C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
     );
   }
   if (stills && opts.at.length === 0) throw new Error('--at 没有有效的秒数');
@@ -379,7 +397,7 @@ async function main() {
       optimizeForSpeed: true,
       captureBeyondViewport: false
     };
-    if (ext === 'jpg') shotOpts.quality = 95;
+    if (ext === 'jpg') shotOpts.quality = opts.jpegQuality;
 
     const t0 = Date.now();
 

@@ -319,8 +319,8 @@ function checkConfig() {
   if (cut != null) warn('封面帧 ' + posterFinal.toFixed(2) + 's 贴着切点 ' + cut.toFixed(2) + 's（闪白），换个 posterAt');
 }
 
-/* 分镜契约：grammar 决定屏幕占比、空间数、材质微距与人手痕迹的下限。
-   镜头时间用成片绝对秒数（不是 60s 基准）；旧工程没有 grammar 时跳过。 */
+/* 分镜契约：grammar 决定空间数、材质微距与人手痕迹的下限；屏幕占比只做诊断，
+   超过经验值时警告、不拦交付——配额是参考，不是处方。镜头时间用成片绝对秒数。 */
 function checkStoryboard() {
   if (!config) return { count: 0, grammar: null };
   const grammar = config.grammar;
@@ -371,7 +371,7 @@ function checkStoryboard() {
       err('世界语法只有 ' + spaces.size + ' 个空间，下限 ' + minSpaces + '：硬件/实体产品必须活在多个真实空间里，不能一整支片一个背景');
     }
     if (screenShare > 0.30 + 1e-9) {
-      err('屏幕镜头占 ' + Math.round(screenShare * 100) + '%，超过 30%：把实体产品拍成屏幕，就是“只演示了功能”');
+      warn('屏幕镜头占 ' + Math.round(screenShare * 100) + '%，超过经验值 30%：确认不是把实体产品拍成了功能演示（有意为之可以继续）');
     }
     const minMacro = duration >= 30 ? 2 : 1;
     if (macros < minMacro) {
@@ -384,7 +384,7 @@ function checkStoryboard() {
   } else {
     const minScreen = 0.5;
     if (screenShare < minScreen - 1e-9) {
-      err('真屏语法只有 ' + Math.round(screenShare * 100) + '% 屏幕镜头，下限 50%：软件/平台片的主体就是真实界面');
+      warn('真屏语法只有 ' + Math.round(screenShare * 100) + '% 屏幕镜头，低于经验值 50%：确认界面没有被空镜或隐喻替代（有意为之可以继续）');
     }
   }
   for (let i = 1; i < clean.length; i++) {

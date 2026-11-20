@@ -32,6 +32,17 @@
     /* paper-story = 层叠剪纸故事 MV：主角 / 场景 / 镜头 / 底部歌词 */
     genre: "paper-story",
 
+    /* 渲染引擎：paper = 原生 Canvas 层叠剪纸（默认，确定性、快）；
+       cg = Blender 3D 纸剧场（cg/mv3d.py：纸片在真实三维空间里，真景深/光影/体积）。
+       引擎只换渲染方式，分镜节拍、歌词、音乐与交付契约都不变。 */
+    engine: "paper",
+    cg: {
+      file: "cg/mv3d.py",
+      samples: 16,
+      engine: "EEVEE",
+      blender: ""
+    },
+
     /* 宣传片层在 MV 里不存在；写死 none，避免两套语法混在一起 */
     look: "none",
     style: "none",

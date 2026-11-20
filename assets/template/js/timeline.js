@@ -9,8 +9,10 @@
   const CAM = MOTION.camera != null ? MOTION.camera : 1;
   const FLASH = MOTION.flash != null ? MOTION.flash : 1;
 
-  /* 场景与字幕按 60s 基准编写；改 duration 后整片等比伸缩 */
-  const SCALE = DURATION / 60;
+  /* 默认按 60s 基准编写；长片 / 剧集把 config.base 设为 duration，
+     场景与字幕就按成片绝对秒数编写（SCALE = 1），不再被等比拉伸。 */
+  const BASE = Number(C.base) > 0 ? Number(C.base) : 60;
+  const SCALE = DURATION / BASE;
   /* 硬切；切点由纸色闪白遮断，不做长溶解 */
   const FLASH_IN = 0.02;
   const FLASH_OUT = 0.10;
@@ -268,8 +270,19 @@
     window.__fontReady || Promise.resolve(false),
     window.__mediaReady || Promise.resolve(false)
   ]).then(function () {
+    /* 后台标签页（并行渲染时常见）不会派发 rAF，必须留定时器兜底，
+       否则 window.ready 永远不 resolve。 */
     return new Promise(function (resolve) {
-      requestAnimationFrame(function () { requestAnimationFrame(resolve); });
+      let done = false;
+      const finish = function () {
+        if (done) return;
+        done = true;
+        resolve();
+      };
+      requestAnimationFrame(function () {
+        requestAnimationFrame(finish);
+      });
+      setTimeout(finish, 250);
     });
   }).then(function () {
     window.__READY = true;

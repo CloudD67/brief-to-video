@@ -1,0 +1,35 @@
+{
+  "name": "brief-to-video-story",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Landscape story drama: 1920×1080 HTML/Three timeline, dialogue voiceover, deterministic frames",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "preview": "node server.js",
+    "music": "node synth-music.js",
+    "voice": "node tools/voiceover.js .",
+    "voice:dry": "node tools/voiceover.js . --dry-run",
+    "voice:list": "node tools/voiceover.js --list-voices",
+    "story": "node tools/validate-story.js .",
+    "story:strict": "node tools/validate-story.js . --strict",
+    "render": "node render.js",
+    "render:1080": "node render.js --scale 1",
+    "render:cg": "node tools/cg-render.js",
+    "build:cg": "node tools/cg-voice.js . && node tools/cg-render.js && node encode.js --subs assets/subs.ass",
+    "encode": "node encode.js",
+    "build": "node tools/validate-story.js . && node render.js && node encode.js",
+    "build:1080": "node tools/validate-story.js . && node render.js --scale 1 && node encode.js",
+    "stills": "node render.js --scale 1 --at 1.5,6.4,9.0,11.8,14.2,19.5,21.5,30.0,35.0,38.8",
+    "repair": "node tools/repair.js .",
+    "test": "node --test test/story.test.js",
+    "clean": "rm -rf frames out stills",
+    "voice:cg": "node tools/cg-voice.js .",
+    "voice:cg:dry": "node tools/cg-voice.js . --dry-run"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "puppeteer-core": "^25.17.0"
+  }
+}

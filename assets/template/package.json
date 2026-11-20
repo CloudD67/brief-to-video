@@ -16,6 +16,8 @@
     "voice:dry": "node tools/voiceover.js . --dry-run",
     "render": "node render.js",
     "render:1080": "node render.js --scale 1",
+    "render:parallel": "node render.js --scale 1 --workers 3",
+    "render:chunks": "node tools/render-chunks.js .",
     "encode": "node encode.js",
     "build": "node render.js && node encode.js && node tools/repair.js .",
     "build:1080": "node render.js --scale 1 && node encode.js && node tools/repair.js .",

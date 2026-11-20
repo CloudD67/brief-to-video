@@ -193,8 +193,18 @@
     window.__fontReady || Promise.resolve(false),
     window.__mediaReady || Promise.resolve(false)
   ]).then(function () {
+    /* 后台标签页不派发 rAF，定时器兜底保证并行渲染能启动。 */
     return new Promise(function (resolve) {
-      requestAnimationFrame(function () { requestAnimationFrame(resolve); });
+      let done = false;
+      const finish = function () {
+        if (done) return;
+        done = true;
+        resolve();
+      };
+      requestAnimationFrame(function () {
+        requestAnimationFrame(finish);
+      });
+      setTimeout(finish, 250);
     });
   }).then(function () {
     window.__READY = true;

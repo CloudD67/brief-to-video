@@ -20,6 +20,8 @@ const DEFAULTS = {
   fps: CONFIG.fps || 30,
   crf: 18,
   preset: 'medium',
+  hw: 'auto',
+  hwQuality: 65,
   frames: 'frames',
   out: 'out',
   music: 'assets/music.wav',
@@ -51,6 +53,8 @@ function usage() {
   --no-voice       忽略旁白，只混背景音乐
   --no-duck        关闭侧链闪避（默认旁白出现时自动压低音乐）
   --muted          忽略音乐与旁白，强制无声
+  --hw <mode>      编码器 auto|off|h264|hevc（默认 auto：macOS 用 VideoToolbox，Windows 用 NVENC/QSV/AMF）
+  --hw-quality <n> 硬件编码质量 1–100（默认 65，越高越清晰；macOS 映射 -q:v，Windows 映射 cq）
   --proxy          额外输出 1080p 代理 out/final_1080p.mp4
   --quiet          减少输出
   -h, --help       显示帮助
@@ -84,6 +88,8 @@ function parseArgs(argv) {
       case '--no-voice': opts.noVoice = true; break;
       case '--no-duck': opts.duck = false; break;
       case '--muted': opts.muted = true; break;
+      case '--hw': opts.hw = String(next()).toLowerCase(); break;
+      case '--hw-quality': opts.hwQuality = Number(next()); break;
       case '--proxy': opts.proxy = true; break;
       case '--quiet': opts.quiet = true; break;
       default: throw new Error('未知参数: ' + a + '\n使用 --help 查看用法');
@@ -91,6 +97,8 @@ function parseArgs(argv) {
   }
   if (!(opts.fps > 0)) throw new Error('--fps 必须大于 0');
   if (!(opts.crf >= 0 && opts.crf <= 51)) throw new Error('--crf 必须在 0-51 之间');
+  if (['auto', 'off', 'h264', 'hevc'].indexOf(opts.hw) === -1) throw new Error('--hw 只能是 auto / off / h264 / hevc');
+  if (!(opts.hwQuality >= 1 && opts.hwQuality <= 100)) throw new Error('--hw-quality 必须在 1-100 之间');
   if (!(opts.musicGain > 0 && opts.musicGain <= 4)) throw new Error('--music-gain 必须在 0-4 之间');
   if (!(opts.voiceGain > 0 && opts.voiceGain <= 4)) throw new Error('--voice-gain 必须在 0-4 之间');
   opts.framesDir = path.resolve(ROOT, opts.frames);
@@ -143,6 +151,125 @@ function ffmpegVersion(ffmpeg) {
   const r = spawnSync(ffmpeg, ['-hide_banner', '-version'], { encoding: 'utf8' });
   if (r.error || r.status !== 0) return 'unknown';
   return (r.stdout || '').split('\n')[0].trim();
+}
+
+function listEncoders(ffmpeg) {
+  const r = spawnSync(ffmpeg, ['-hide_banner', '-encoders'], { encoding: 'utf8' });
+  const text = (r.stdout || '') + '\n' + (r.stderr || '');
+  const set = new Set();
+  text.split('\n').forEach(line => {
+    const m = line.match(/^\s*[VAS][.A-Z]{5}\s+(\S+)/);
+    if (m) set.add(m[1]);
+  });
+  return set;
+}
+
+/* Windows 的 ffmpeg 几乎总把 NVENC/QSV/AMF 全列出来，机器上却未必有对应硬件，
+   所以先跑一帧试编码确认真的能用，再决定用谁。 */
+function encoderWorks(ffmpeg, args) {
+  const r = spawnSync(ffmpeg, [
+    '-hide_banner', '-loglevel', 'error',
+    '-f', 'lavfi', '-i', 'color=c=black:s=256x144:d=0.1',
+    '-frames:v', '1', ...args, '-f', 'null', '-'
+  ], { encoding: 'utf8' });
+  return r.status === 0;
+}
+
+function softwareEncoder(opts) {
+  return {
+    mode: 'libx264',
+    label: 'libx264  crf ' + opts.crf + '  preset ' + opts.preset,
+    args: ['-c:v', 'libx264', '-preset', opts.preset, '-crf', String(opts.crf)],
+    loglevel: 'warning'
+  };
+}
+
+/* macOS：VideoToolbox。--hw-quality 映射 -q:v（1-100，越高越清晰，65 约等于 x264 crf18） */
+function darwinEncoder(ffmpeg, opts, available) {
+  const want = opts.hw === 'hevc' ? 'hevc_videotoolbox' : 'h264_videotoolbox';
+  if (!available.has(want)) {
+    if (opts.hw === 'auto') return null;
+    throw new Error('当前 ffmpeg 没有 ' + want + '，用 --hw off 或换一份带 VideoToolbox 的 ffmpeg');
+  }
+  const enc = {
+    mode: want,
+    label: want + '  q ' + opts.hwQuality + '  (macOS VideoToolbox)',
+    args: ['-c:v', want, '-allow_sw', '1', '-realtime', '0', '-q:v', String(opts.hwQuality)],
+    loglevel: 'error'
+  };
+  if (want === 'hevc_videotoolbox') enc.args.push('-tag:v', 'hvc1');
+  return enc;
+}
+
+/* Windows：NVENC -> QSV -> AMF，逐个一帧试编码，全不可用返回 null */
+function windowsEncoder(ffmpeg, opts, available) {
+  const codec = opts.hw === 'hevc' ? 'hevc' : 'h264';
+  const cq = Math.max(16, Math.min(32, Math.round(30 - opts.hwQuality * 0.1)));
+  const candidates = [
+    [codec + '_nvenc', ['-c:v', codec + '_nvenc', '-preset', 'p5', '-rc', 'vbr', '-cq', String(cq), '-b:v', '0'], 'NVENC'],
+    [codec + '_qsv', ['-c:v', codec + '_qsv', '-global_quality', String(cq)], 'QSV'],
+    [codec + '_amf', ['-c:v', codec + '_amf', '-rc', 'cqp', '-qp_i', String(cq), '-qp_p', String(cq)], 'AMF']
+  ];
+  for (const [name, args, vendor] of candidates) {
+    if (!available.has(name)) continue;
+    if (!encoderWorks(ffmpeg, args)) continue;
+    return {
+      mode: name,
+      label: name + '  cq ' + cq + '  (' + vendor + ')',
+      args,
+      loglevel: 'error'
+    };
+  }
+  return null;
+}
+
+/* 平台分派：darwin / win32 各走各的硬件实现，其他平台只用 libx264。
+   --hw h264|hevc 是显式要求，本平台不可用时直接报错；auto 则静默回退。 */
+function pickEncoder(ffmpeg, opts) {
+  if (opts.hw === 'off') return softwareEncoder(opts);
+  const available = listEncoders(ffmpeg);
+  if (process.platform === 'darwin') {
+    const hw = darwinEncoder(ffmpeg, opts, available);
+    if (hw) return hw;
+    const sw = softwareEncoder(opts);
+    sw.note = 'VideoToolbox 不可用，回退 libx264';
+    return sw;
+  }
+  if (process.platform === 'win32') {
+    const hw = windowsEncoder(ffmpeg, opts, available);
+    if (hw) return hw;
+    if (opts.hw === 'auto') {
+      const sw = softwareEncoder(opts);
+      sw.note = '没有可用的 NVENC / QSV / AMF 硬件编码器，回退 libx264';
+      return sw;
+    }
+    throw new Error('这台机器的 ffmpeg 用不了 ' + opts.hw + ' 硬件编码（试过 NVENC / QSV / AMF）。\n' +
+      '检查显卡驱动，或用 --hw off 走 libx264');
+  }
+  if (opts.hw !== 'auto') {
+    throw new Error('--hw ' + opts.hw + ' 只支持 macOS（VideoToolbox）与 Windows（NVENC/QSV/AMF）；其他平台用 --hw off 或 --hw auto');
+  }
+  const sw = softwareEncoder(opts);
+  sw.note = '当前平台没有硬件编码路径，回退 libx264';
+  return sw;
+}
+
+/* 代理：macOS 固定 h264_videotoolbox（兼容性最好），Windows 沿用主编码器的硬件参数，
+   软件编码才回退 x264 crf20。 */
+function proxyEncoder(mainEncoder, opts) {
+  if (mainEncoder.mode.indexOf('videotoolbox') !== -1) {
+    return {
+      args: ['-c:v', 'h264_videotoolbox', '-allow_sw', '1', '-realtime', '0', '-q:v', '70'],
+      loglevel: 'error'
+    };
+  }
+  if (mainEncoder.mode === 'libx264') {
+    return {
+      args: ['-c:v', 'libx264', '-preset', opts.preset, '-crf', '20'],
+      loglevel: 'warning'
+    };
+  }
+  return { args: mainEncoder.args.slice(), loglevel: 'error' };
 }
 
 function detectFrames(opts) {
@@ -211,6 +338,7 @@ async function main() {
   const opts = parseArgs(process.argv.slice(2));
   const ffmpeg = findFfmpeg();
   const info = detectFrames(opts);
+  const encoder = pickEncoder(ffmpeg, opts);
   fs.mkdirSync(opts.outDir, { recursive: true });
 
   const hasMusicFile = fs.existsSync(opts.musicPath);
@@ -231,7 +359,7 @@ async function main() {
   log(opts, '  FFmpeg    ' + ffmpegVersion(ffmpeg));
   log(opts, `  帧        ${info.count} 帧  ${info.ext.toUpperCase()}  (${info.first}-${info.last})`);
   log(opts, `  时长      ${seconds.toFixed(2)}s  @${opts.fps}fps`);
-  log(opts, `  编码      libx264  crf ${opts.crf}  preset ${opts.preset}`);
+  log(opts, `  编码      ${encoder.label}${encoder.note ? '  · ' + encoder.note : ''}`);
   log(opts, `  旁白      ${hasVoice ? path.relative(ROOT, opts.voicePath) + (voiceCount ? ` · ${voiceCount} 句` : '') : (opts.muted ? '已跳过（--muted）' : opts.noVoice ? '已跳过（--no-voice）' : '无（先运行 npm run voice）')}`);
   log(opts, `  音乐      ${hasMusic ? path.relative(ROOT, opts.musicPath) + ` · 增益 ${musicGain}${hasVoice && opts.duck ? ' · 侧链闪避' : ''}` : '无（导出无声版）'}`);
   log(opts, '');
@@ -242,13 +370,11 @@ async function main() {
 
   const inputPattern = 'frame_%0' + info.padding + 'd.' + info.ext;
   const videoArgs = [
-    '-y', '-hide_banner', '-loglevel', 'warning', '-stats',
+    '-y', '-hide_banner', '-loglevel', encoder.loglevel, '-stats',
     '-framerate', String(opts.fps),
     '-start_number', String(info.first),
     '-i', path.join(opts.framesDir, inputPattern),
-    '-c:v', 'libx264',
-    '-preset', opts.preset,
-    '-crf', String(opts.crf),
+    ...encoder.args,
     '-pix_fmt', 'yuv420p',
     '-colorspace', 'bt709',
     '-color_primaries', 'bt709',
@@ -325,13 +451,12 @@ async function main() {
 
   if (opts.proxy) {
     const proxyScale = CONFIG.width >= CONFIG.height ? 'scale=1920:-2' : 'scale=-2:1920';
+    const proxy = proxyEncoder(encoder, opts);
     const proxyArgs = [
-      '-y', '-hide_banner', '-loglevel', 'warning', '-stats',
+      '-y', '-hide_banner', '-loglevel', proxy.loglevel, '-stats',
       '-i', opts.finalFile,
       '-vf', proxyScale + ':flags=lanczos',
-      '-c:v', 'libx264',
-      '-preset', opts.preset,
-      '-crf', '20',
+      ...proxy.args,
       '-pix_fmt', 'yuv420p',
       '-c:a', 'copy',
       '-movflags', '+faststart',
